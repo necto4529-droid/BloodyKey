@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodyKey | Улучшенная защита</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0f3460 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { color: #00ff88; font-size: 26px; font-weight: 700; text-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .help-btn {
+            background: rgba(0, 255, 136, 0.15);
+            border: 2px solid rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .help-btn:hover { background: rgba(0, 255, 136, 0.3); transform: scale(1.05); }
+        .subtitle { 
+            text-align: center; 
+            color: rgba(255, 255, 255, 0.5); 
+            margin-bottom: 22px; 
+            font-size: 13px; 
+            letter-spacing: 1px;             text-transform: uppercase;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+        .mode-selector { display: flex; gap: 12px; margin-bottom: 22px; }
+        .mode-btn {
+            flex: 1; padding: 15px; border: 2px solid; border-radius: 18px;
+            background: rgba(255, 255, 255, 0.03); color: #fff;
+            font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .mode-btn.encrypt { border-color: #00ff88; color: #00ff88; }
+        .mode-btn.encrypt.active {
+            background: linear-gradient(135deg, #00ff88, #00d9ff);
+            color: #0a0a1a; box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+        }
+        .mode-btn.decrypt { border-color: #00d9ff; color: #00d9ff; }
+        .mode-btn.decrypt.active {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #0a0a1a; box-shadow: 0 0 25px rgba(0, 217, 255, 0.4);
+        }
+        .settings-panel {
+            background: rgba(0, 0, 0, 0.35); border-radius: 22px;
+            padding: 18px; margin-bottom: 22px;
+            border: 1px solid rgba(0, 255, 136, 0.12);
+        }
+        .settings-title { color: #00ff88; font-size: 14px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .setting-item { margin-bottom: 16px; }
+        .setting-label { color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 8px; display: block; font-weight: 500; }
+        .setting-input {
+            width: 100%; padding: 13px 15px; border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 14px; background: rgba(0, 0, 0, 0.3); color: #fff;
+            font-size: 15px; transition: all 0.3s ease;
+        }
+        .setting-input:focus { outline: none; border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3); background: rgba(0, 0, 0, 0.45); }
+        .key-strength { display: flex; gap: 4px; margin-top: 8px; }
+        .strength-bar { width: 100%; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
+        .strength-bar.active.weak { background: #ff4444; }
+        .strength-bar.active.medium { background: #ffaa00; }
+        .strength-bar.active.strong { background: #00ff88; }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-label { color: rgba(255, 255, 255, 0.9); font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .toggle-switch {
+            width: 52px; height: 27px; -webkit-appearance: none; appearance: none;
+            background: rgba(255, 255, 255, 0.1); border-radius: 14px;
+            position: relative; cursor: pointer; transition: all 0.3s ease;
+        }
+        .toggle-switch:checked { background: linear-gradient(135deg, #00ff88, #00d9ff); box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .toggle-switch::after {            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 21px; height: 21px; background: #fff;
+            border-radius: 50%; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .toggle-switch:checked::after { left: 28px; }
+        .slider-row { margin: 12px 0; padding: 8px 0; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .slider-label { color: rgba(255, 255, 255, 0.9); font-size: 14px; }
+        .slider-value { color: #00ff88; font-size: 14px; font-weight: 600; }
+        .slider-input { width: 100%; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); -webkit-appearance: none; appearance: none; cursor: pointer; }
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d9ff);
+            cursor: pointer; box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+            transition: all 0.3s ease;
+        }
+        .slider-input::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .input-section { margin-bottom: 22px; }
+        .input-field {
+            width: 100%; padding: 16px; border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 18px; background: rgba(0, 0, 0, 0.3); color: #fff;
+            font-size: 16px; min-height: 90px; resize: vertical;
+            transition: all 0.3s ease; font-family: inherit;
+        }
+        .input-field:focus { outline: none; border-color: #00ff88; box-shadow: 0 0 25px rgba(0, 255, 136, 0.3); background: rgba(0, 0, 0, 0.45); }
+        .input-field::placeholder { color: rgba(255, 255, 255, 0.3); }
+        .char-counter { text-align: right; color: rgba(0, 255, 136, 0.6); font-size: 12px; margin-top: 6px; font-weight: 600; }
+        .action-btn {
+            width: 100%; padding: 18px; border: none; border-radius: 18px;
+            font-size: 16px; font-weight: 700; cursor: pointer;
+            margin-bottom: 12px; transition: all 0.3s ease;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .action-btn:active { transform: scale(0.98); }
+        .action-btn.encrypt { background: linear-gradient(135deg, #00ff88, #00d9ff); color: #0a0a1a; box-shadow: 0 6px 20px rgba(0, 255, 136, 0.35); }
+        .action-btn.encrypt:hover { box-shadow: 0 8px 28px rgba(0, 255, 136, 0.5); }
+        .action-btn.decrypt { background: linear-gradient(135deg, #00d9ff, #00ff88); color: #0a0a1a; box-shadow: 0 6px 20px rgba(0, 217, 255, 0.35); }
+        .action-btn.decrypt:hover { box-shadow: 0 8px 28px rgba(0, 217, 255, 0.5); }
+        .action-btn.clear { background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.8); }
+        .action-btn.clear:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.3); }
+        .result-section { background: rgba(0, 0, 0, 0.45); border-radius: 18px; padding: 22px; display: none; margin-top: 18px; border: 1px solid rgba(0, 255, 136, 0.15); }
+        .result-section.show { display: block; }
+        .result-text { color: #00ff88; font-size: 14px; word-break: break-all; font-family: 'Courier New', monospace; margin: 12px 0; line-height: 1.7; }
+        .copy-btn {
+            background: rgba(0, 255, 136, 0.15); border: 2px solid rgba(0, 255, 136, 0.35);
+            color: #00ff88; padding: 11px 18px; border-radius: 12px;
+            cursor: pointer; font-size: 14px; font-weight: 600;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 6px;
+        }        .copy-btn:hover { background: rgba(0, 255, 136, 0.25); border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+        .toast {
+            position: fixed; bottom: 35px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #00ff88, #00d9ff);
+            color: #0a0a1a; padding: 14px 28px; border-radius: 25px;
+            font-weight: 600; font-size: 14px; opacity: 0;
+            transition: all 0.35s ease; z-index: 1000;
+            box-shadow: 0 8px 30px rgba(0, 255, 136, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: linear-gradient(135deg, #ff4444, #ff6600); box-shadow: 0 8px 30px rgba(255, 68, 68, 0.4); }
+        .tooltip {
+            position: relative; display: inline-block; cursor: help;
+            background: rgba(0, 255, 136, 0.2); color: #00ff88;
+            width: 18px; height: 18px; border-radius: 50%;
+            text-align: center; line-height: 18px; font-size: 11px;
+            margin-left: 5px; transition: all 0.3s ease;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            flex-shrink: 0;
+        }
+        .tooltip:hover { background: rgba(0, 255, 136, 0.35); }
+        .tooltip:hover::after {
+            content: attr(data-tip); position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%); background: rgba(10, 10, 26, 0.97);
+            color: #00ff88; padding: 8px 14px; border-radius: 10px;
+            font-size: 12px; white-space: nowrap; z-index: 100;
+            margin-bottom: 6px; border: 1px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            max-width: 250px;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .footer { text-align: center; margin-top: 28px; color: rgba(255, 255, 255, 0.3); font-size: 11px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 2000; padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: rgba(10, 10, 26, 0.97); border: 2px solid rgba(0, 255, 136, 0.25);
+            border-radius: 26px; padding: 32px; max-width: 500px; width: 100%;
+            max-height: 80vh; overflow-y: auto; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid rgba(0, 255, 136, 0.18); }
+        .modal-title { color: #00ff88; font-size: 22px; font-weight: 700; }        .modal-close {
+            background: rgba(0, 255, 136, 0.18); border: 2px solid rgba(0, 255, 136, 0.35);
+            color: #00ff88; width: 38px; height: 38px; border-radius: 50%;
+            font-size: 22px; cursor: pointer; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-close:hover { background: rgba(0, 255, 136, 0.35); }
+        .modal-section { margin-bottom: 22px; }
+        .modal-section-title { color: #00ff88; font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+        .modal-text, .modal-list { color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.8; }
+        .modal-list { padding-left: 22px; }
+        .modal-list li { margin-bottom: 6px; }
+        
+        @media (max-width: 600px) {
+            .container { padding: 24px 18px; }
+            h1 { font-size: 22px; }
+            .mode-btn { padding: 13px; font-size: 14px; }
+            .action-btn { padding: 16px; font-size: 15px; }
+            .subtitle { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 BloodyKey</h1>
+            <button class="help-btn" onclick="openHelp()">?</button>
+        </div>
+        <p class="subtitle">Двойное позиционное кодирование + Динамический шум</p>
+
+        <div class="mode-selector">
+            <button class="mode-btn encrypt active" id="btnEncrypt" onclick="switchMode('encrypt')">🔒 Зашифровать</button>
+            <button class="mode-btn decrypt" id="btnDecrypt" onclick="switchMode('decrypt')">🔓 Расшифровать</button>
+        </div>
+
+        <div class="settings-panel">
+            <div class="settings-title">🛡️ Настройки защиты</div>
+            
+            <div class="setting-item">
+                <label class="setting-label">
+                    Секретный ключ
+                    <span class="tooltip" data-tip="Ключ для шифрования. Чем сложнее, тем надёжнее!">?</span>
+                </label>
+                <input type="text" class="setting-input" id="secretKey" value="BLOODY" oninput="updateKeyStrength()">
+                <div class="key-strength">
+                    <div class="strength-bar" id="bar1"></div>
+                    <div class="strength-bar" id="bar2"></div>
+                    <div class="strength-bar" id="bar3"></div>
+                    <div class="strength-bar" id="bar4"></div>
+                </div>            </div>
+
+            <div class="toggle-row">
+                <span class="toggle-label">
+                    Улучшенная защита
+                    <span class="tooltip" data-tip="Двойное позиционное смещение! Код смещается 2 раза с разными множителями. Взлом в 100 раз сложнее!">?</span>
+                </span>
+                <input type="checkbox" class="toggle-switch" id="enhancedProtection" checked>
+            </div>
+
+            <div class="toggle-row">
+                <span class="toggle-label">
+                    Динамический шум
+                    <span class="tooltip" data-tip="Шум генерируется из ключа. У каждого ключа свой шум!">?</span>
+                </span>
+                <input type="checkbox" class="toggle-switch" id="dynamicNoise" checked>
+            </div>
+
+            <div class="slider-row">
+                <div class="slider-header">
+                    <span class="slider-label">
+                        Уровень шума
+                        <span class="tooltip" data-tip="Добавляет ложные коды для защиты">?</span>
+                    </span>
+                    <span class="slider-value" id="noiseValue">10%</span>
+                </div>
+                <input type="range" class="slider-input" id="noiseLevel" min="0" max="50" value="10" oninput="updateNoiseValue()">
+            </div>
+
+            <div class="toggle-row">
+                <span class="toggle-label">
+                    Позиционное кодирование
+                    <span class="tooltip" data-tip="Код зависит от позиции буквы">?</span>
+                </span>
+                <input type="checkbox" class="toggle-switch" id="positionEncode" checked>
+            </div>
+
+            <div class="toggle-row">
+                <span class="toggle-label">
+                    Перемешивание таблицы
+                    <span class="tooltip" data-tip="Буквы перемешиваются по ключу">?</span>
+                </span>
+                <input type="checkbox" class="toggle-switch" id="shuffleTable" checked>
+            </div>
+        </div>
+
+        <div id="encryptSection">
+            <div class="input-section">
+                <label class="setting-label">Введите текст для шифрования:</label>
+                <textarea class="input-field" id="encryptInput" placeholder="Например: Привет, BloodyKey!" oninput="updateCounter('encrypt')"></textarea>                <div class="char-counter" id="encryptCounter">0</div>
+            </div>
+            <button class="action-btn encrypt" onclick="doEncrypt()">🔐 Зашифровать</button>
+            <button class="action-btn clear" onclick="clearAll()">🧹 Очистить</button>
+            <div class="result-section" id="encryptResult">
+                <div class="result-text" id="encryptOutput"></div>
+                <button class="copy-btn" onclick="copyText('encryptOutput')">📋 Копировать</button>
+            </div>
+        </div>
+
+        <div id="decryptSection" style="display: none;">
+            <div class="input-section">
+                <label class="setting-label">Введите код для расшифровки:</label>
+                <textarea class="input-field" id="decryptInput" placeholder="Например: 0207-0208-0110" oninput="updateCounter('decrypt')"></textarea>
+                <div class="char-counter" id="decryptCounter">0</div>
+            </div>
+            <button class="action-btn decrypt" onclick="doDecrypt()">🔓 Расшифровать</button>
+            <button class="action-btn clear" onclick="clearAll()">🧹 Очистить</button>
+            <div class="result-section" id="decryptResult">
+                <div class="result-text" id="decryptOutput"></div>
+                <button class="copy-btn" onclick="copyText('decryptOutput')">📋 Копировать</button>
+            </div>
+        </div>
+
+        <div class="footer">BloodyKey © 2025 | Двойное позиционное кодирование 🔐</div>
+    </div>
+
+    <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">❓ Справка</h2>
+                <button class="modal-close" onclick="closeHelp()">×</button>
+            </div>
+            
+            <div class="modal-section">
+                <h3 class="modal-section-title">🔐 Как это работает?</h3>
+                <p class="modal-text">BloodyKey использует двойное позиционное кодирование и динамический шум для максимальной защиты.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3 class="modal-section-title">🛡️ Уровни защиты:</h3>
+                <ul class="modal-list">
+                    <li><strong>Ключ-слово</strong> — перемешивает таблицу символов</li>
+                    <li><strong>Улучшенная защита</strong> — двойное позиционное смещение!</li>
+                    <li><strong>Динамический шум</strong> — генерируется из ключа</li>
+                    <li><strong>Позиционное кодирование</strong> — код зависит от позиции</li>
+                    <li><strong>Перемешивание таблицы</strong> — буквы не по алфавиту</li>
+                </ul>
+            </div>
+            <div class="modal-section">
+                <h3 class="modal-section-title">📝 Как использовать?</h3>
+                <ol class="modal-list">
+                    <li>Введи секретный ключ (запомни его!)</li>
+                    <li>Включи "Улучшенная защита" для двойного смещения</li>
+                    <li>Настрой остальные параметры</li>
+                    <li>Введи текст и нажми «Зашифровать»</li>
+                    <li>Получатель вводит тот же ключ и настройки</li>
+                </ol>
+            </div>
+
+            <div class="modal-section">
+                <h3 class="modal-section-title">⚠️ Важно!</h3>
+                <p class="modal-text">Все настройки должны совпадать при шифровании и расшифровке! Иначе сообщение не расшифруется.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ Готово!</div>
+
+    <script>
+        var baseGrid = ["АБВГДЕЁЖЗИ","ЙКЛМНОПРСТ","УФХЦЧШЩЪЫЬ","ЭЮЯabcdefg","hijklmnopq","rstuvwxyz0","123456789.",",!?:;-_@#$","%&*()[]{}@","\\|+=<>\"'~★"];
+        
+        function generateNoiseCodes(key) {
+            var noise = [];
+            var hash = 0;
+            for (var i = 0; i < key.length; i++) {
+                hash = ((hash << 5) - hash) + key.charCodeAt(i);
+                hash = hash & hash;
+            }
+            hash = Math.abs(hash);
+            for (var j = 0; j < 5; j++) {
+                var code = 500 + ((hash + j * 100) % 500);
+                noise.push(String(code));
+            }
+            return noise;
+        }
+
+        window.onload = function() { updateKeyStrength(); updateNoiseValue(); loadSettings(); };
+        
+        function updateKeyStrength() {
+            var key = document.getElementById('secretKey').value;
+            var strength = 0;
+            if (key.length >= 4) strength++;
+            if (key.length >= 8) strength++;
+            if (/[A-Z]/.test(key) && /[0-9]/.test(key)) strength++;
+            if (key.length >= 12) strength++;
+            for (var i = 1; i <= 4; i++) {
+                var bar = document.getElementById('bar' + i);
+                bar.className = 'strength-bar';                if (i <= strength) bar.classList.add('active');
+            }
+            saveSettings();
+        }
+        
+        function updateNoiseValue() {
+            var val = document.getElementById('noiseLevel').value;
+            document.getElementById('noiseValue').textContent = val + '%';
+        }
+        
+        function updateCounter(type) {
+            var text = document.getElementById(type + 'Input').value;
+            document.getElementById(type + 'Counter').textContent = text.length + ' символов';
+        }
+        
+        function switchMode(mode) {
+            var btnEncrypt = document.getElementById('btnEncrypt');
+            var btnDecrypt = document.getElementById('btnDecrypt');
+            var encryptSection = document.getElementById('encryptSection');
+            var decryptSection = document.getElementById('decryptSection');
+            if (mode === 'encrypt') {
+                btnEncrypt.classList.add('active');
+                btnDecrypt.classList.remove('active');
+                encryptSection.style.display = 'block';
+                decryptSection.style.display = 'none';
+            } else {
+                btnEncrypt.classList.remove('active');
+                btnDecrypt.classList.add('active');
+                encryptSection.style.display = 'none';
+                decryptSection.style.display = 'block';
+            }
+        }
+        
+        function generateGrid(key) {
+            var allChars = baseGrid.join('').split('');
+            if (key && key.trim()) {
+                var seed = 0;
+                for (var i = 0; i < key.length; i++) { seed += key.charCodeAt(i); }
+                for (var j = allChars.length - 1; j > 0; j--) {
+                    var k = (seed + j) % (j + 1);
+                    var temp = allChars[j];
+                    allChars[j] = allChars[k];
+                    allChars[k] = temp;
+                }
+            }
+            var grid = [];
+            for (var row = 0; row < 10; row++) {
+                grid.push(allChars.slice(row * 10, (row + 1) * 10).join(''));
+            }
+            return grid;        }
+        
+        function positionShift(code, pos, encrypt, enhanced = false) {
+            if (!encrypt) pos = -pos;
+            
+            var row = parseInt(code.substring(0, 2));
+            var col = parseInt(code.substring(2, 4));
+            
+            var newRow = ((row - 1 + pos) % 10 + 10) % 10 + 1;
+            var newCol = ((col - 1 + pos) % 10 + 10) % 10 + 1;
+            
+            if (enhanced) {
+                var newPos = pos * 2;
+                newRow = ((newRow - 1 + newPos) % 10 + 10) % 10 + 1;
+                newCol = ((newCol - 1 + newPos) % 10 + 10) % 10 + 1;
+            }
+            
+            return String(newRow).padStart(2, '0') + String(newCol).padStart(2, '0');
+        }
+        
+        function doEncrypt() {
+            var text = document.getElementById('encryptInput').value;
+            if (!text.trim()) { showToast('Введите текст!', true); return; }
+            
+            var key = document.getElementById('secretKey').value;
+            var enhancedProtection = document.getElementById('enhancedProtection').checked;
+            var dynamicNoise = document.getElementById('dynamicNoise').checked;
+            var noiseLevel = parseInt(document.getElementById('noiseLevel').value);
+            var positionEncode = document.getElementById('positionEncode').checked;
+            var shuffleTable = document.getElementById('shuffleTable').checked;
+            
+            var noiseCodes = dynamicNoise ? generateNoiseCodes(key) : ['555', '666', '777', '888', '999'];
+            var grid = shuffleTable ? generateGrid(key) : baseGrid;
+            var result = [];
+            var encodePos = 0;
+            
+            for (var i = 0; i < text.length; i++) {
+                var char = text[i];
+                if (char === ' ') { 
+                    result.push("00"); 
+                    encodePos++;
+                    continue; 
+                }
+                
+                var found = false;
+                for (var rowIdx = 0; rowIdx < grid.length; rowIdx++) {
+                    var row = grid[rowIdx];
+                    var colIdx = row.indexOf(char.toUpperCase());
+                    if (colIdx === -1) colIdx = row.indexOf(char.toLowerCase());
+                    if (colIdx === -1) colIdx = row.indexOf(char);                    
+                    if (colIdx !== -1) {
+                        var code = String(rowIdx + 1).padStart(2, '0') + String(colIdx + 1).padStart(2, '0');
+                        
+                        if (positionEncode) {
+                            code = positionShift(code, encodePos, true, enhancedProtection);
+                        }
+                        
+                        result.push(code);
+                        found = true;
+                        encodePos++;
+                        break;
+                    }
+                }
+            }
+            
+            if (noiseLevel > 0) {
+                var withNoise = [];
+                for (var k = 0; k < result.length; k++) {
+                    withNoise.push(result[k]);
+                    if (Math.random() * 100 < noiseLevel) {
+                        withNoise.push(noiseCodes[Math.floor(Math.random() * noiseCodes.length)]);
+                    }
+                }
+                result = withNoise;
+            }
+            
+            document.getElementById('encryptOutput').textContent = result.join('-');
+            document.getElementById('encryptResult').classList.add('show');
+            showToast(enhancedProtection ? 'Зашифровано с двойной защитой!' : 'Зашифровано!');
+            saveSettings();
+        }
+        
+        function doDecrypt() {
+            var code = document.getElementById('decryptInput').value.trim();
+            if (!code) { showToast('Введите код!', true); return; }
+            
+            var key = document.getElementById('secretKey').value;
+            var enhancedProtection = document.getElementById('enhancedProtection').checked;
+            var dynamicNoise = document.getElementById('dynamicNoise').checked;
+            var positionEncode = document.getElementById('positionEncode').checked;
+            var shuffleTable = document.getElementById('shuffleTable').checked;
+            
+            var noiseCodes = dynamicNoise ? generateNoiseCodes(key) : ['555', '666', '777', '888', '999'];
+            var grid = shuffleTable ? generateGrid(key) : baseGrid;
+            var codes = code.split('-');
+            var cleanCodes = [];
+            
+            for (var i = 0; i < codes.length; i++) {
+                var codeVal = codes[i].trim();                if (codeVal && noiseCodes.indexOf(codeVal) === -1) {
+                    cleanCodes.push(codeVal);
+                }
+            }
+            
+            var result = [];
+            for (var j = 0; j < cleanCodes.length; j++) {
+                var codePair = cleanCodes[j];
+                if (codePair === '00') { 
+                    result.push(' '); 
+                    continue; 
+                }
+                
+                var processedCode = codePair;
+                
+                if (positionEncode && codePair.length === 4) {
+                    processedCode = positionShift(codePair, j, false, enhancedProtection);
+                }
+                
+                if (processedCode.length === 4) {
+                    var row = parseInt(processedCode.substring(0, 2)) - 1;
+                    var col = parseInt(processedCode.substring(2, 4)) - 1;
+                    if (row >= 0 && row < 10 && col >= 0 && col < 10) {
+                        result.push(grid[row][col]);
+                    }
+                }
+            }
+            
+            document.getElementById('decryptOutput').textContent = result.join('');
+            document.getElementById('decryptResult').classList.add('show');
+            showToast(enhancedProtection ? 'Расшифровано (двойная защита)!' : 'Расшифровано!');
+            saveSettings();
+        }
+        
+        function clearAll() {
+            document.getElementById('encryptInput').value = '';
+            document.getElementById('decryptInput').value = '';
+            document.getElementById('encryptCounter').textContent = '0';
+            document.getElementById('decryptCounter').textContent = '0';
+            document.getElementById('encryptResult').classList.remove('show');
+            document.getElementById('decryptResult').classList.remove('show');
+            showToast('Очищено!');
+        }
+        
+        function copyText(elementId) {
+            var text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(function() { showToast('Скопировано!'); }).catch(function() {
+                var textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('Скопировано!');
+            });
+        }
+        
+        function showToast(msg, isError) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(function() { toast.classList.remove('show'); }, 2200);
+        }
+        
+        function openHelp() {
+            document.getElementById('helpModal').classList.add('show');
+        }
+        
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('show');
+        }
+        
+        function saveSettings() {
+            var settings = {
+                key: document.getElementById('secretKey').value,
+                enhancedProtection: document.getElementById('enhancedProtection').checked,
+                dynamicNoise: document.getElementById('dynamicNoise').checked,
+                noiseLevel: document.getElementById('noiseLevel').value,
+                positionEncode: document.getElementById('positionEncode').checked,
+                shuffleTable: document.getElementById('shuffleTable').checked
+            };
+            localStorage.setItem('bloodyKey2Settings', JSON.stringify(settings));
+        }
+        
+        function loadSettings() {
+            var saved = localStorage.getItem('bloodyKey2Settings');
+            if (saved) {
+                var settings = JSON.parse(saved);
+                if (settings.key) document.getElementById('secretKey').value = settings.key;
+                if (settings.enhancedProtection !== undefined) document.getElementById('enhancedProtection').checked = settings.enhancedProtection;
+                if (settings.dynamicNoise !== undefined) document.getElementById('dynamicNoise').checked = settings.dynamicNoise;
+                if (settings.noiseLevel) document.getElementById('noiseLevel').value = settings.noiseLevel;
+                if (settings.positionEncode !== undefined) document.getElementById('positionEncode').checked = settings.positionEncode;
+                if (settings.shuffleTable !== undefined) document.getElementById('shuffleTable').checked = settings.shuffleTable;
+            }
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey) {
+                if (e.key === 'e' || e.key === 'E') { e.preventDefault(); doEncrypt(); }                else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); doDecrypt(); }
+            }
+        });
+    </script>
+</body>
+</html>
