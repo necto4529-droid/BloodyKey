@@ -83,7 +83,7 @@ https://necto4529-droid.github.io/BloodyKey/
 
 ## 👤 Автор
 
-BloodyKey создан [necto4529-droid] для безопасного общения в мессенджерах без встроенного шифрования.
+BloodyKey создан necto4529-droid(https://github.com/necto4529-droid) для безопасного общения в мессенджерах без встроенного шифрования.
 
 ---
 
