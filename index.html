@@ -713,13 +713,13 @@ body::after {
     <div class="result-text" id="resultText"></div>
   </div>
 
-  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 64MB · SECURE</div>
+  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 128MB · SECURE</div>
 </div>
 
 <div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="modal">
     <div class="modal-head"><span class="modal-title">❓ Справка</span><button class="modal-close" onclick="closeHelp()">×</button></div>
-    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> — современный стандарт. Пароль превращается в ключ через Argon2id (64 МБ памяти, 3 итерации). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
+    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> — современный стандарт. Пароль превращается в ключ через Argon2id (128 МБ памяти, 4 итерации). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
     <div class="modal-section"><div class="modal-h">📝 Режим «Текст»</div><ul class="modal-list"><li>Введите текст → «Зашифровать» → получите Base64-строку.</li><li>Отправьте её получателю — без пароля бесполезна.</li><li>Получатель вставляет строку, вводит пароль и расшифровывает.</li></ul></div>
     <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 2).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 34 байта, заголовок защищён AAD, drag&drop работает.</li></ul></div>
     <div class="modal-section"><div class="modal-h">⚠️ Безопасность пароля</div><p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p></div>
@@ -741,8 +741,8 @@ async function deriveKey(password, salt) {
   const hash = await argon2.hash({
     pass: password,
     salt: salt,
-    time: 3,
-    mem: 64 * 1024, // 64MB
+    time: 4,
+    mem: 128 * 1024, // 128MB
     parallelism: 1,
     hashLen: 32,
     type: argon2.ArgonType.Argon2id
