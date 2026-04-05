@@ -37,7 +37,7 @@
 
 ### Онлайн (GitHub Pages)
 После публикации репозитория сайт будет доступен по адресу:  
-`https://necto4529-droid.github.io/BloodyKey/`
+`https://necto4529-droid.github.io/BloodyKey/(https://necto4529-droid.github.io/BloodyKey/)`
 
 ## 📖 Как пользоваться
 
