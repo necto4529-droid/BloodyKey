@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>BloodyKey | AES-256-GCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g: #00ff88;
+  --b: #00d9ff;
+  --bg: #080814;
+  --panel: rgba(255,255,255,.04);
+  --border: rgba(0,255,136,.15);
+  --text: rgba(255,255,255,.9);
+  --muted: rgba(255,255,255,.4);
+  --err: #ff4f4f;
+  --warn: #ffa62b;
+  --radius: 20px;
+  --r-sm: 12px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 16px 40px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,136,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -40%;
+  left: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(0,255,136,.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: pulse-bg 8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-bg {
+  from { transform: scale(1) translate(0,0); opacity: 0.6; }
+  to   { transform: scale(1.15) translate(5%, 8%); opacity: 1; }
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 0 2px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--g), var(--b));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px rgba(0,255,136,.35);
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--g);
+  letter-spacing: -0.5px;
+}
+
+.logo-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(0,255,136,.12);
+  border: 1px solid var(--border);
+  color: var(--g);
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.help-btn {
+  width: 38px; height: 38px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--g);
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+}
+.help-btn:hover { background: rgba(0,255,136,.15); border-color: var(--g); transform: scale(1.05); }
+
+/* CARD */
+.card {
+  background: var(--panel);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 14px;
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+.card:focus-within {
+  border-color: rgba(0,255,136,.5);
+  box-shadow: 0 4px 20px rgba(0,255,136,.1);
+}
+
+/* MODE TABS */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tab {
+  padding: 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: rgba(0,0,0,.3);
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s ease;
+  letter-spacing: .3px;
+}
+.tab:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.tab.active-enc {
+  background: rgba(0,255,136,.12);
+  border-color: rgba(0,255,136,.5);
+  color: var(--g);
+  box-shadow: 0 0 12px rgba(0,255,136,.4), inset 0 1px 1px rgba(255,255,255,.1);
+}
+.tab.active-dec {
+  background: rgba(0,217,255,.12);
+  border-color: rgba(0,217,255,.5);
+  color: var(--b);
+  box-shadow: 0 0 12px rgba(0,217,255,.4), inset 0 1px 1px rgba(255,255,255,.1);
+}
+
+/* SUB-TABS */
+.sub-tabs {
+  display: flex;
+  background: rgba(0,0,0,.35);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.sub-tab {
+  flex: 1;
+  padding: 9px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.sub-tab.active {
+  background: rgba(0,255,136,.15);
+  color: var(--g);
+  box-shadow: 0 0 10px rgba(0,255,136,.2);
+}
+
+/* FIELD */
+.field { margin-bottom: 18px; }
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.label-hint { font-size: 11px; color: rgba(255,255,255,.25); text-transform: none; letter-spacing: 0; }
+
+.input-wrap { position: relative; }
+
+.input, .textarea {
+  width: 100%;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 13px 16px;
+  transition: all .25s ease;
+  outline: none;
+}
+.input:focus, .textarea:focus {
+  border-color: var(--g);
+  background: rgba(0,0,0,.55);
+  box-shadow: 0 0 0 3px rgba(0,255,136,.08);
+}
+.input::placeholder, .textarea::placeholder { color: rgba(255,255,255,.2); }
+.textarea { min-height: 130px; resize: vertical; line-height: 1.7; }
+
+/* password toggle */
+.pw-wrap { display: flex; gap: 8px; align-items: stretch; }
+.pw-toggle {
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all .2s ease;
+  flex-shrink: 0;
+}
+.pw-toggle:hover { border-color: var(--g); color: var(--g); }
+
+/* strength */
+.strength-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.strength-bars { display: flex; gap: 4px; flex: 1; }
+.bar {
+  flex: 1; height: 3px;
+  background: rgba(255,255,255,.08);
+  border-radius: 2px;
+  transition: all .3s ease;
+}
+.bar.weak   { background: var(--err); box-shadow: 0 0 6px rgba(255,79,79,.6); }
+.bar.medium { background: var(--warn); box-shadow: 0 0 6px rgba(255,166,43,.6); }
+.bar.strong { background: var(--g); box-shadow: 0 0 8px rgba(0,255,136,.8); }
+.strength-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  min-width: 44px;
+  text-align: right;
+  transition: color .3s;
+}
+
+/* FILE PICK */
+.file-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(0,255,136,.25);
+  border-radius: var(--r-sm);
+  padding: 28px 20px;
+  cursor: pointer;
+  transition: all .25s ease;
+  background: rgba(0,0,0,.3);
+  text-align: center;
+  gap: 8px;
+}
+.file-pick:hover, .file-pick.drag { border-color: var(--g); background: rgba(0,255,136,.06); }
+.file-pick-icon { font-size: 28px; line-height: 1; }
+.file-pick-title { color: var(--g); font-weight: 600; font-size: 14px; }
+.file-pick-sub { color: var(--muted); font-size: 12px; }
+.file-info-row {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(0,255,136,.07);
+  border: 1px solid rgba(0,255,136,.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  display: none;
+}
+.file-info-row.show { display: flex; }
+.file-info-name { color: var(--g); font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.file-info-size { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.file-clear { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; transition: color .2s; flex-shrink: 0; }
+.file-clear:hover { color: var(--err); }
+
+/* PROGRESS */
+.progress-wrap { height: 3px; background: rgba(255,255,255,.06); border-radius: 2px; margin: 12px 0; overflow: hidden; display: none; }
+.progress-wrap.show { display: block; }
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--g), var(--b));
+  border-radius: 2px;
+  transition: width .25s ease;
+  box-shadow: 0 0 8px rgba(0,255,136,.5);
+}
+
+/* BUTTONS */
+.btn-row { display: flex; gap: 10px; margin-top: 6px; }
+.btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+.btn:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+}
+.btn:active:after {
+  width: 200%;
+  height: 200%;
+}
+
+.btn-primary-enc {
+  background: linear-gradient(135deg, var(--g), var(--b));
+  color: #080814;
+  box-shadow: 0 4px 16px rgba(0,255,136,.3);
+}
+.btn-primary-enc:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(0,255,136,.5); transform: translateY(-1px); }
+
+.btn-primary-dec {
+  background: linear-gradient(135deg, var(--b), var(--g));
+  color: #080814;
+  box-shadow: 0 4px 16px rgba(0,217,255,.3);
+}
+.btn-primary-dec:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(0,217,255,.5); transform: translateY(-1px); }
+
+.btn-ghost {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  color: var(--muted);
+  flex: 0 0 auto;
+  padding: 15px 18px;
+}
+.btn-ghost:hover:not(:disabled) { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); color: var(--text); }
+
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,.3);
+  border-top-color: #080814;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* RESULT */
+.result-card {
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(0,255,136,.2);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 14px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(8px);
+  display: none;
+}
+.result-card.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.result-title { color: var(--g); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+.result-actions { display: flex; gap: 8px; }
+.result-text {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--g);
+  font-size: 12px;
+  line-height: 1.8;
+  word-break: break-all;
+  white-space: pre-wrap;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.result-text::-webkit-scrollbar { width: 4px; }
+.result-text::-webkit-scrollbar-track { background: rgba(255,255,255,.04); border-radius: 2px; }
+.result-text::-webkit-scrollbar-thumb { background: rgba(0,255,136,.3); border-radius: 2px; }
+
+.btn-icon {
+  background: rgba(0,255,136,.1);
+  border: 1px solid rgba(0,255,136,.25);
+  color: var(--g);
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all .2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-icon:hover {
+  background: rgba(0,255,136,.2);
+  border-color: var(--g);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,255,136,.2);
+}
+
+/* counter */
+.counter {
+  text-align: right;
+  color: rgba(0,255,136,.4);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+/* warning */
+.warn-bar {
+  background: rgba(255,166,43,.07);
+  border: 1px solid rgba(255,166,43,.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--warn);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(40px);
+  background: rgba(10,10,26,.97);
+  border: 1px solid rgba(0,255,136,.4);
+  color: var(--g);
+  padding: 11px 22px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 3000;
+  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  animation: bounce-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toast.err { border-color: rgba(255,79,79,.5); color: var(--err); }
+.toast.ok  { border-color: rgba(0,255,136,.5); color: var(--g); }
+
+@keyframes bounce-in {
+  0% { transform: translateX(-50%) translateY(40px); opacity: 0; }
+  60% { transform: translateX(-50%) translateY(-5px); }
+  100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* MODAL */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+.modal {
+  background: #0c0c1e;
+  border: 1px solid rgba(0,255,136,.2);
+  border-radius: var(--radius);
+  padding: 28px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: modal-in .25s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.modal-title { color: var(--g); font-size: 18px; font-weight: 700; }
+.modal-close {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: var(--muted);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.modal-close:hover { background: rgba(255,79,79,.15); border-color: rgba(255,79,79,.4); color: var(--err); }
+.modal-section { margin-bottom: 20px; }
+.modal-h { color: var(--g); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.modal-p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; }
+.modal-list { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; padding-left: 18px; }
+.modal-list li { margin-bottom: 4px; }
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  color: rgba(255,255,255,.18);
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-top: 20px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .card { padding: 18px; }
+  .btn-row { flex-wrap: wrap; }
+  .btn-ghost { flex: 1 1 100%; order: 3; }
+  .logo-text { font-size: 18px; }
+}
+@media (max-width: 360px) {
+  .card { padding: 14px; }
+  .btn-row { gap: 6px; }
+  .btn { padding: 12px; font-size: 12px; }
+  .result-text { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🔐</div>
+      <span class="logo-text">BloodyKey</span>
+      <span class="logo-badge">AES-256-GCM</span>
+    </div>
+    <button class="help-btn" onclick="openHelp()" aria-label="Справка">?</button>
+  </div>
+
+  <!-- MODE TABS -->
+  <div class="tabs" role="tablist">
+    <button class="tab active-enc" id="tabEnc" onclick="switchMode('enc')" role="tab" aria-selected="true">🔒 Зашифровать</button>
+    <button class="tab" id="tabDec" onclick="switchMode('dec')" role="tab" aria-selected="false">🔓 Расшифровать</button>
+  </div>
+
+  <!-- KEY CARD -->
+  <div class="card">
+    <div class="field">
+      <div class="label">
+        <span>Мастер-ключ</span>
+        <span class="label-hint">Не сохраняется нигде</span>
+      </div>
+      <div class="pw-wrap">
+        <input
+          class="input"
+          id="secretKey"
+          type="password"
+          placeholder="Минимум 12 символов..."
+          autocomplete="new-password"
+          spellcheck="false"
+          oninput="onKeyInput()"
+          aria-label="Секретный пароль"
+        >
+        <button class="pw-toggle" id="pwToggle" onclick="togglePw()" aria-label="Показать/скрыть пароль">👁</button>
+      </div>
+      <div class="strength-row">
+        <div class="strength-bars">
+          <div class="bar" id="b1"></div>
+          <div class="bar" id="b2"></div>
+          <div class="bar" id="b3"></div>
+          <div class="bar" id="b4"></div>
+        </div>
+        <span class="strength-label" id="strengthLabel" style="color:var(--muted)">—</span>
+      </div>
+    </div>
+    <div class="warn-bar">⚠️ Передавайте пароль только лично или через зашифрованный канал!</div>
+  </div>
+
+  <!-- SUB-TABS -->
+  <div class="sub-tabs">
+    <button class="sub-tab active" id="subText" onclick="setType('text')">📝 Текст</button>
+    <button class="sub-tab" id="subFile" onclick="setType('file')">📁 Файл</button>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="card">
+
+    <!-- TEXT INPUT (encrypt) -->
+    <div id="areaTextEnc">
+      <div class="field">
+        <div class="label"><span>Исходный текст</span></div>
+        <textarea class="textarea" id="encIn" placeholder="Введите сообщение для шифрования..." oninput="cnt('encIn','cntEnc')"></textarea>
+        <div class="counter" id="cntEnc">0 симв.</div>
+      </div>
+    </div>
+
+    <!-- FILE INPUT (encrypt) -->
+    <div id="areaFileEnc" style="display:none">
+      <div class="label"><span>Файл для шифрования</span></div>
+      <div class="file-pick" id="fpEnc" onclick="document.getElementById('fInEnc').click()" ondragover="dragOver(event,'fpEnc')" ondragleave="dragLeave('fpEnc')" ondrop="dropFile(event,'enc')">
+        <div class="file-pick-icon">📂</div>
+        <div class="file-pick-title">Нажмите или перетащите файл</div>
+        <div class="file-pick-sub">Любой формат — изображение, документ, архив</div>
+      </div>
+      <input type="file" id="fInEnc" style="display:none" onchange="pickFile(event,'enc')">
+      <div class="file-info-row" id="fInfoEnc">
+        <span class="file-info-name" id="fNameEnc"></span>
+        <span class="file-info-size" id="fSizeEnc"></span>
+        <button class="file-clear" onclick="clearFile('enc')" aria-label="Убрать файл">✕</button>
+      </div>
+    </div>
+
+    <!-- TEXT INPUT (decrypt) -->
+    <div id="areaTextDec" style="display:none">
+      <div class="field">
+        <div class="label"><span>Зашифрованный текст (Base64)</span></div>
+        <textarea class="textarea" id="decIn" placeholder="Вставьте зашифрованное сообщение..." oninput="cnt('decIn','cntDec')"></textarea>
+        <div class="counter" id="cntDec">0 симв.</div>
+      </div>
+    </div>
+
+    <!-- FILE INPUT (decrypt) -->
+    <div id="areaFileDec" style="display:none">
+      <div class="label"><span>Зашифрованный файл (.bloody)</span></div>
+      <div class="file-pick" id="fpDec" onclick="document.getElementById('fInDec').click()" ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
+        <div class="file-pick-icon">🩸</div>
+        <div class="file-pick-title">Выбрать .bloody файл</div>
+        <div class="file-pick-sub">Файлы с расширением .bloody</div>
+      </div>
+      <input type="file" id="fInDec" style="display:none" accept=".bloody" onchange="pickFile(event,'dec')">
+      <div class="file-info-row" id="fInfoDec">
+        <span class="file-info-name" id="fNameDec"></span>
+        <span class="file-info-size" id="fSizeDec"></span>
+        <button class="file-clear" onclick="clearFile('dec')" aria-label="Убрать файл">✕</button>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap" id="prog"><div class="progress-fill" id="progFill"></div></div>
+
+    <!-- BUTTONS -->
+    <div class="btn-row">
+      <button class="btn btn-primary-enc" id="mainBtn" onclick="doAction()">
+        <span id="mainBtnIcon">🔐</span>
+        <span id="mainBtnText">Зашифровать</span>
+      </button>
+      <button class="btn btn-ghost" onclick="clearAll()" title="Очистить всё">🧹 Очистить</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <span class="result-title" id="resultTitle">Результат</span>
+      <div class="result-actions">
+        <button class="btn-icon" onclick="copyResult()">📋 Скопировать</button>
+      </div>
+    </div>
+    <div class="result-text" id="resultText"></div>
+  </div>
+
+  <div class="footer">BLOODYKEY © 2025 · AES-256-GCM · PBKDF2 · 100K ITER · SHA-256</div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Справка">
+    <div class="modal-head">
+      <span class="modal-title">❓ Справка</span>
+      <button class="modal-close" onclick="closeHelp()" aria-label="Закрыть">×</button>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-h">🔐 Как работает шифрование</div>
+      <p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> — военный стандарт шифрования. Ваш пароль превращается в 256-битный ключ через <strong>PBKDF2</strong> (100 000 итераций SHA-256), что делает брутфорс практически невозможным. Каждое шифрование использует уникальную соль и IV.</p>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-h">📝 Режим «Текст»</div>
+      <ul class="modal-list">
+        <li>Введите текст → нажмите «Зашифровать» → получите Base64-строку.</li>
+        <li>Отправьте её получателю любым каналом — без пароля она бесполезна.</li>
+        <li>Получатель вставляет строку, вводит пароль и расшифровывает.</li>
+      </ul>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-h">📁 Режим «Файл»</div>
+      <ul class="modal-list">
+        <li>Выберите любой файл (фото, архив, документ).</li>
+        <li>После шифрования скачается файл <strong>.bloody</strong>.</li>
+        <li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li>
+        <li>Размер файла увеличивается всего на 28 байт (соль + IV).</li>
+        <li>Поддерживается drag & drop.</li>
+      </ul>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-h">⚠️ Безопасность пароля</div>
+      <p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте телефонный звонок, личную встречу или <strong>Signal / Telegram (секретный чат)</strong>. Без пароля расшифровать данные невозможно — даже авторам BloodyKey.</p>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-h">⌨️ Горячие клавиши</div>
+      <p class="modal-p">Ctrl+E — зашифровать / расшифровать</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  CRYPTO CORE
+// ─────────────────────────────────────────────
+const ENC = new TextEncoder();
+const DEC = new TextDecoder();
+
+async function deriveKey(password, salt) {
+  const raw = await crypto.subtle.importKey('raw', ENC.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256' },
+    raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptBuf(buf, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt);
+  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, buf);
+  const out  = new Uint8Array(28 + ct.byteLength);
+  out.set(salt, 0); out.set(iv, 16); out.set(new Uint8Array(ct), 28);
+  return out.buffer;
+}
+
+async function decryptBuf(buf, password) {
+  const d = new Uint8Array(buf);
+  if (d.length < 29) throw new Error('Данные повреждены или слишком короткие');
+  const key = await deriveKey(password, d.slice(0, 16));
+  return crypto.subtle.decrypt({ name: 'AES-GCM', iv: d.slice(16, 28) }, key, d.slice(28));
+}
+
+async function encryptText(plain, pw) {
+  const buf  = await encryptBuf(ENC.encode(plain), pw);
+  const u8   = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return btoa(s);
+}
+
+async function decryptText(b64, pw) {
+  const bin = atob(b64.trim());
+  const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
+  return DEC.decode(await decryptBuf(buf, pw));
+}
+
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsArrayBuffer(file);
+  });
+}
+
+function downloadBlob(buf, name, mime = 'application/octet-stream') {
+  const blob = new Blob([buf], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let mode = 'enc';       // 'enc' | 'dec'
+let dtype = 'text';     // 'text' | 'file'
+let fileEnc = null;
+let fileDec = null;
+let busy = false;
+
+// ─────────────────────────────────────────────
+//  KEY STRENGTH
+// ─────────────────────────────────────────────
+function onKeyInput() {
+  const v = $('secretKey').value;
+  let s = 0;
+  if (v.length >= 4)  s++;
+  if (v.length >= 8)  s++;
+  if (v.length >= 12) s++;
+  if (/[A-Z]/.test(v) && /[0-9!@#$%^&*]/.test(v)) s++;
+  const cls = s <= 1 ? 'weak' : s <= 2 ? 'medium' : 'strong';
+  const labels = { 0: '—', 1: 'Слабый', 2: 'Средний', 3: 'Хороший', 4: 'Сильный' };
+  const colors = { 0: 'var(--muted)', weak: 'var(--err)', medium: 'var(--warn)', strong: 'var(--g)' };
+  for (let i = 1; i <= 4; i++) {
+    const b = $(`b${i}`);
+    b.className = 'bar' + (i <= s ? ' ' + cls : '');
+  }
+  const lbl = $('strengthLabel');
+  lbl.textContent = labels[s] || '—';
+  lbl.style.color = s === 0 ? colors[0] : colors[cls];
+}
+
+// ─────────────────────────────────────────────
+//  MODE / TYPE SWITCH
+// ─────────────────────────────────────────────
+function switchMode(m) {
+  mode = m;
+  $('tabEnc').className = 'tab' + (m === 'enc' ? ' active-enc' : '');
+  $('tabDec').className = 'tab' + (m === 'dec' ? ' active-dec' : '');
+  $('tabEnc').setAttribute('aria-selected', m === 'enc');
+  $('tabDec').setAttribute('aria-selected', m === 'dec');
+
+  const isEnc = m === 'enc';
+  $('mainBtn').className  = 'btn ' + (isEnc ? 'btn-primary-enc' : 'btn-primary-dec');
+  $('mainBtnIcon').textContent = isEnc ? '🔐' : '🔓';
+  $('mainBtnText').textContent = isEnc ? 'Зашифровать' : 'Расшифровать';
+
+  hideResult();
+  setType(dtype);
+}
+
+function setType(t) {
+  dtype = t;
+  $('subText').classList.toggle('active', t === 'text');
+  $('subFile').classList.toggle('active', t === 'file');
+
+  show('areaTextEnc', t === 'text' && mode === 'enc');
+  show('areaFileEnc', t === 'file' && mode === 'enc');
+  show('areaTextDec', t === 'text' && mode === 'dec');
+  show('areaFileDec', t === 'file' && mode === 'dec');
+}
+
+// ─────────────────────────────────────────────
+//  FILE HANDLING
+// ─────────────────────────────────────────────
+function pickFile(e, side) {
+  const f = e.target.files[0];
+  if (f) setFile(f, side);
+}
+
+function setFile(f, side) {
+  if (side === 'enc') fileEnc = f;
+  else fileDec = f;
+  showFileInfo(f, side);
+}
+
+function showFileInfo(f, side) {
+  const suffix = side === 'enc' ? 'Enc' : 'Dec';
+  $('fName' + suffix).textContent = f.name;
+  $('fSize' + suffix).textContent = formatSize(f.size);
+  $('fInfo' + suffix).classList.add('show');
+}
+
+function clearFile(side) {
+  const suffix = side === 'enc' ? 'Enc' : 'Dec';
+  if (side === 'enc') { fileEnc = null; $('fInEnc').value = ''; }
+  else { fileDec = null; $('fInDec').value = ''; }
+  $('fInfo' + suffix).classList.remove('show');
+}
+
+function dragOver(e, id) { e.preventDefault(); $(id).classList.add('drag'); }
+function dragLeave(id) { $(id).classList.remove('drag'); }
+function dropFile(e, side) {
+  e.preventDefault();
+  const id = side === 'enc' ? 'fpEnc' : 'fpDec';
+  $(id).classList.remove('drag');
+  const f = e.dataTransfer?.files?.[0];
+  if (f) {
+    if (side === 'dec' && !f.name.endsWith('.bloody')) {
+      toast('Ожидается файл .bloody!', 'err'); return;
+    }
+    setFile(f, side);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PROGRESS
+// ─────────────────────────────────────────────
+function setProgress(p) {
+  const wrap = $('prog');
+  const fill = $('progFill');
+  if (p <= 0) { wrap.classList.remove('show'); fill.style.width = '0%'; return; }
+  wrap.classList.add('show');
+  fill.style.width = Math.min(p, 100) + '%';
+  if (p >= 100) setTimeout(() => setProgress(0), 600);
+}
+
+// ─────────────────────────────────────────────
+//  MAIN ACTION
+// ─────────────────────────────────────────────
+async function doAction() {
+  if (busy) return;
+  const pw = $('secretKey').value;
+  if (!pw) return toast('Введите пароль!', 'err');
+  if (mode === 'enc' && pw.length < 12) return toast('Пароль: минимум 12 символов!', 'err');
+
+  setBusy(true);
+  try {
+    if (mode === 'enc') await doEncrypt(pw);
+    else await doDecrypt(pw);
+  } catch (e) {
+    toast('Ошибка: ' + (e.message || 'неизвестная'), 'err');
+    console.error(e);
+  } finally {
+    setBusy(false);
+    setProgress(0);
+  }
+}
+
+async function doEncrypt(pw) {
+  if (dtype === 'text') {
+    const txt = $('encIn').value.trim();
+    if (!txt) return toast('Введите текст!', 'err');
+    setProgress(30);
+    const result = await encryptText(txt, pw);
+    setProgress(100);
+    showResult(result, 'Зашифрованный текст (Base64)');
+    toast('Зашифровано ✓');
+  } else {
+    if (!fileEnc) return toast('Выберите файл!', 'err');
+    setProgress(20);
+    const buf = await readFile(fileEnc);
+    setProgress(60);
+    const enc = await encryptBuf(buf, pw);
+    setProgress(90);
+    const name = fileEnc.name + '.bloody';
+    downloadBlob(enc, name);
+    setProgress(100);
+    toast('Файл зашифрован | Ждите загрузки...');
+    clearFile('enc');
+  }
+}
+
+async function doDecrypt(pw) {
+  if (dtype === 'text') {
+    const txt = $('decIn').value.trim();
+    if (!txt) return toast('Вставьте зашифрованный текст!', 'err');
+    setProgress(30);
+    const result = await decryptText(txt, pw);
+    setProgress(100);
+    showResult(result, 'Расшифрованный текст');
+    toast('Расшифровано ✓');
+  } else {
+    if (!fileDec) return toast('Выберите .bloody файл!', 'err');
+    setProgress(20);
+    const buf = await readFile(fileDec);
+    setProgress(60);
+    const dec = await decryptBuf(buf, pw);
+    setProgress(90);
+    let name = fileDec.name;
+    if (name.endsWith('.bloody')) name = name.slice(0, -7);
+    else name = 'decrypted_' + name;
+    downloadBlob(dec, name);
+    setProgress(100);
+    toast('Файл расшифрован | Ждите загрузки...');
+    clearFile('dec');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  UI HELPERS
+// ─────────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
+function show(id, v) { $(id).style.display = v ? '' : 'none'; }
+
+function setBusy(v) {
+  busy = v;
+  const btn = $('mainBtn');
+  btn.disabled = v;
+  if (v) {
+    $('mainBtnIcon').outerHTML = '<span id="mainBtnIcon" class="spinner"></span>';
+    $('mainBtnText').textContent = 'Обработка…';
+  } else {
+    const icon = document.getElementById('mainBtnIcon');
+    if (icon) icon.outerHTML = '<span id="mainBtnIcon">' + (mode === 'enc' ? '🔐' : '🔓') + '</span>';
+    $('mainBtnText').textContent = mode === 'enc' ? 'Зашифровать' : 'Расшифровать';
+  }
+}
+
+function showResult(text, title) {
+  $('resultTitle').textContent = title;
+  $('resultText').textContent  = text;
+  $('resultCard').classList.add('show');
+}
+
+function hideResult() {
+  $('resultCard').classList.remove('show');
+  $('resultText').textContent = '';
+}
+
+function copyResult() {
+  const txt = $('resultText').textContent;
+  if (!txt) return;
+  navigator.clipboard.writeText(txt)
+    .then(() => toast('Скопировано ✓'))
+    .catch(() => {
+      const ta = Object.assign(document.createElement('textarea'), { value: txt });
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      ta.remove(); toast('Скопировано ✓');
+    });
+}
+
+let _toastTimer;
+function toast(msg, type = 'ok') {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function cnt(inputId, counterId) {
+  const n = $(inputId)?.value?.length || 0;
+  $(counterId).textContent = n.toLocaleString('ru') + ' симв.';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function clearAll() {
+  ['encIn','decIn'].forEach(id => { const e = $(id); if (e) e.value = ''; });
+  $('secretKey').value = '';
+  ['enc','dec'].forEach(s => clearFile(s));
+  hideResult();
+  onKeyInput();
+  cnt('encIn','cntEnc'); cnt('decIn','cntDec');
+  toast('Очищено');
+}
+
+function togglePw() {
+  const inp = $('secretKey');
+  const isPw = inp.type === 'password';
+  inp.type = isPw ? 'text' : 'password';
+  $('pwToggle').textContent = isPw ? '🔒' : '👁';
+}
+
+function openHelp()  { $('helpModal').classList.add('show'); }
+function closeHelp() { $('helpModal').classList.remove('show'); }
+
+// ─────────────────────────────────────────────
+//  KEYBOARD SHORTCUTS
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeHelp();
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
+    e.preventDefault(); doAction();
+  }
+});
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+switchMode('enc');
+setType('text');
+onKeyInput();
+</script>
+</body>
+</html>
