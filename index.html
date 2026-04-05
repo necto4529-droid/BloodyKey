@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>BloodyKey | AES-256-GCM</title>
+<title>BloodyKey | AES-256-GCM | 300k итераций</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -35,7 +35,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Animated background grid */
 body::before {
   content: '';
   position: fixed;
@@ -745,7 +744,7 @@ body::after {
     <div class="result-text" id="resultText"></div>
   </div>
 
-  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · PBKDF2 · 100K ITER · SHA-256</div>
+  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · PBKDF2 · 300K ITER · SHA-256</div>
 </div>
 
 <!-- MODAL -->
@@ -758,7 +757,7 @@ body::after {
 
     <div class="modal-section">
       <div class="modal-h">🔐 Как работает шифрование</div>
-      <p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> — военный стандарт шифрования. Ваш пароль превращается в 256-битный ключ через <strong>PBKDF2</strong> (100 000 итераций SHA-256), что делает брутфорс практически невозможным. Каждое шифрование использует уникальную соль и IV.</p>
+      <p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> — военный стандарт шифрования. Ваш пароль превращается в 256-битный ключ через <strong>PBKDF2</strong> (300 000 итераций SHA-256), что делает брутфорс практически невозможным. Каждое шифрование использует уникальную соль и IV.</p>
     </div>
 
     <div class="modal-section">
@@ -778,6 +777,7 @@ body::after {
         <li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li>
         <li>Размер файла увеличивается всего на 28 байт (соль + IV).</li>
         <li>Поддерживается drag & drop.</li>
+        <li>Формат .bloody содержит магическую сигнатуру BLOO для проверки.</li>
       </ul>
     </div>
 
@@ -796,37 +796,75 @@ body::after {
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-// ─────────────────────────────────────────────
-//  CRYPTO CORE
-// ─────────────────────────────────────────────
+// ========== CRYPTO CORE ==========
 const ENC = new TextEncoder();
 const DEC = new TextDecoder();
+
+// Константы для формата .bloody (magic + version)
+const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
+const BLOODY_VERSION = new Uint8Array([0x00, 0x01]); // версия 1
 
 async function deriveKey(password, salt) {
   const raw = await crypto.subtle.importKey('raw', ENC.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt, iterations: 300_000, hash: 'SHA-256' }, // ← увеличено до 300k
     raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
   );
 }
 
+// Шифрование файла (бинарные данные) с добавлением магических байтов
 async function encryptBuf(buf, password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv   = crypto.getRandomValues(new Uint8Array(12));
   const key  = await deriveKey(password, salt);
   const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, buf);
-  const out  = new Uint8Array(28 + ct.byteLength);
-  out.set(salt, 0); out.set(iv, 16); out.set(new Uint8Array(ct), 28);
-  return out.buffer;
+  
+  // Формат: magic (4) + version (2) + salt (16) + iv (12) + ciphertext
+  const totalLen = 4 + 2 + 16 + 12 + ct.byteLength;
+  const result = new Uint8Array(totalLen);
+  result.set(BLOODY_MAGIC, 0);
+  result.set(BLOODY_VERSION, 4);
+  result.set(salt, 6);
+  result.set(iv, 22);
+  result.set(new Uint8Array(ct), 34);
+  return result.buffer;
 }
 
+// Расшифровка файла (поддерживает старый формат без магии, для совместимости)
 async function decryptBuf(buf, password) {
-  const d = new Uint8Array(buf);
-  if (d.length < 29) throw new Error('Данные повреждены или слишком короткие');
-  const key = await deriveKey(password, d.slice(0, 16));
-  return crypto.subtle.decrypt({ name: 'AES-GCM', iv: d.slice(16, 28) }, key, d.slice(28));
+  const data = new Uint8Array(buf);
+  // Проверяем наличие магии "BLOO"
+  let offset = 0;
+  let hasMagic = false;
+  if (data.length >= 4 && data[0] === BLOODY_MAGIC[0] && data[1] === BLOODY_MAGIC[1] &&
+      data[2] === BLOODY_MAGIC[2] && data[3] === BLOODY_MAGIC[3]) {
+    hasMagic = true;
+    if (data.length < 6) throw new Error('Файл повреждён (недостаточно данных)');
+    // Проверка версии (пока только 0x0001, можно игнорировать, но для будущего)
+    const version = (data[4] << 8) | data[5];
+    if (version !== 0x0001) console.warn('Неизвестная версия формата .bloody, попытка расшифровать как v1');
+    offset = 6;
+  }
+  
+  if (hasMagic) {
+    // Новый формат: offset указывает на начало соли
+    const salt = data.slice(offset, offset + 16);
+    const iv   = data.slice(offset + 16, offset + 28);
+    const ct   = data.slice(offset + 28);
+    const key = await deriveKey(password, salt);
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  } else {
+    // Старый формат: без магии, предполагаем что первые 28 байт это salt+iv
+    if (data.length < 29) throw new Error('Данные повреждены или слишком короткие');
+    const salt = data.slice(0, 16);
+    const iv   = data.slice(16, 28);
+    const ct   = data.slice(28);
+    const key = await deriveKey(password, salt);
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  }
 }
 
+// Текстовые функции (без изменений, используют encryptBuf/decryptBuf)
 async function encryptText(plain, pw) {
   const buf  = await encryptBuf(ENC.encode(plain), pw);
   const u8   = new Uint8Array(buf);
@@ -858,18 +896,14 @@ function downloadBlob(buf, name, mime = 'application/octet-stream') {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// ─────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────
+// ========== STATE ==========
 let mode = 'enc';       // 'enc' | 'dec'
 let dtype = 'text';     // 'text' | 'file'
 let fileEnc = null;
 let fileDec = null;
 let busy = false;
 
-// ─────────────────────────────────────────────
-//  KEY STRENGTH
-// ─────────────────────────────────────────────
+// ========== KEY STRENGTH ==========
 function onKeyInput() {
   const v = $('secretKey').value;
   let s = 0;
@@ -889,9 +923,7 @@ function onKeyInput() {
   lbl.style.color = s === 0 ? colors[0] : colors[cls];
 }
 
-// ─────────────────────────────────────────────
-//  MODE / TYPE SWITCH
-// ─────────────────────────────────────────────
+// ========== MODE / TYPE SWITCH ==========
 function switchMode(m) {
   mode = m;
   $('tabEnc').className = 'tab' + (m === 'enc' ? ' active-enc' : '');
@@ -919,9 +951,7 @@ function setType(t) {
   show('areaFileDec', t === 'file' && mode === 'dec');
 }
 
-// ─────────────────────────────────────────────
-//  FILE HANDLING
-// ─────────────────────────────────────────────
+// ========== FILE HANDLING ==========
 function pickFile(e, side) {
   const f = e.target.files[0];
   if (f) setFile(f, side);
@@ -962,9 +992,7 @@ function dropFile(e, side) {
   }
 }
 
-// ─────────────────────────────────────────────
-//  PROGRESS
-// ─────────────────────────────────────────────
+// ========== PROGRESS ==========
 function setProgress(p) {
   const wrap = $('prog');
   const fill = $('progFill');
@@ -974,9 +1002,7 @@ function setProgress(p) {
   if (p >= 100) setTimeout(() => setProgress(0), 600);
 }
 
-// ─────────────────────────────────────────────
-//  MAIN ACTION
-// ─────────────────────────────────────────────
+// ========== MAIN ACTION ==========
 async function doAction() {
   if (busy) return;
   const pw = $('secretKey').value;
@@ -988,7 +1014,7 @@ async function doAction() {
     if (mode === 'enc') await doEncrypt(pw);
     else await doDecrypt(pw);
   } catch (e) {
-    toast('Ошибка: ' + (e.message || 'неизвестная'), 'err');
+    toast('Ошибка: ' + (e.message || 'данные повреждены!'), 'err');
     console.error(e);
   } finally {
     setBusy(false);
@@ -1015,7 +1041,7 @@ async function doEncrypt(pw) {
     const name = fileEnc.name + '.bloody';
     downloadBlob(enc, name);
     setProgress(100);
-    toast('Файл зашифрован | Ждите загрузки...');
+    toast('Файл зашифрован | Ожидайте скачивания...');
     clearFile('enc');
   }
 }
@@ -1041,14 +1067,12 @@ async function doDecrypt(pw) {
     else name = 'decrypted_' + name;
     downloadBlob(dec, name);
     setProgress(100);
-    toast('Файл расшифрован | Ждите загрузки...');
+    toast('Файл расшифрован | Ожидайте скачивания...');
     clearFile('dec');
   }
 }
 
-// ─────────────────────────────────────────────
-//  UI HELPERS
-// ─────────────────────────────────────────────
+// ========== UI HELPERS ==========
 function $(id) { return document.getElementById(id); }
 function show(id, v) { $(id).style.display = v ? '' : 'none'; }
 
@@ -1129,9 +1153,7 @@ function togglePw() {
 function openHelp()  { $('helpModal').classList.add('show'); }
 function closeHelp() { $('helpModal').classList.remove('show'); }
 
-// ─────────────────────────────────────────────
-//  KEYBOARD SHORTCUTS
-// ─────────────────────────────────────────────
+// ========== KEYBOARD SHORTCUTS ==========
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeHelp();
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
@@ -1139,12 +1161,10 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// ─────────────────────────────────────────────
-//  INIT
-// ─────────────────────────────────────────────
+// ========== INIT ==========
 switchMode('enc');
 setType('text');
 onKeyInput();
 </script>
 </body>
-</html>
+        </html>
