@@ -719,13 +719,13 @@ body::after {
     <div class="result-text" id="resultText"></div>
   </div>
 
-  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 256MB · PARALLEL 8</div>
+  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 128MB · PARALLEL 4</div>
 </div>
 
 <div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="modal">
     <div class="modal-head"><span class="modal-title">❓ Справка</span><button class="modal-close" onclick="closeHelp()">×</button></div>
-    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (256 МБ памяти, 5 итераций, 8 потоков). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
+    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 5 итераций, 4 потока). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
     <div class="modal-section"><div class="modal-h">📝 Режим «Текст»</div><ul class="modal-list"><li>Введите текст → «Зашифровать» → получите Base64-строку.</li><li>Отправьте её получателю — без пароля бесполезна.</li><li>Получатель вставляет строку, вводит пароль и расшифровывает.</li></ul></div>
     <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 2).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 34 байта, заголовок защищён AAD, drag&drop работает.</li></ul></div>
     <div class="modal-section"><div class="modal-h">⚠️ Безопасность пароля</div><p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p></div>
@@ -748,8 +748,8 @@ async function deriveKey(password, salt) {
     pass: password,
     salt: salt,
     time: 5,
-    mem: 256 * 1024,      // 256 MB
-    parallelism: 8,
+    mem: 128 * 1024,      // 128 MB
+    parallelism: 4,
     hashLen: 32,
     type: argon2.ArgonType.Argon2id
   });
