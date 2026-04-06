@@ -730,16 +730,6 @@ body::after {
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-// Активируем мощный SIMD-двигатель
-if (typeof argon2 !== 'undefined') {
-  argon2.init({
-    wasmPath: 'argon2-simd.wasm' 
-  }).then(() => {
-    console.log("🚀 BloodyKey: SIMD-WASM готов!");
-  }).catch(e => {
-    console.error("❌ Ошибка загрузки WASM:", e);
-  });
-}
   
 // ========== CRYPTO CORE (Argon2id + AAD) ==========
 const ENC = new TextEncoder();
