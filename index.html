@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>BloodyKey | AES-256-GCM + Argon2id (SIMD)</title>
+<title>BloodyKey | AES-256-GCM + Argon2id</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="argon2-bundled.min.js"></script>
@@ -725,7 +725,7 @@ body::after {
 <div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="modal">
     <div class="modal-head"><span class="modal-title">❓ Справка</span><button class="modal-close" onclick="closeHelp()">×</button></div>
-    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (SIMD-ускорение). Пароль превращается в ключ через Argon2id (256 МБ памяти, 5 итераций, 8 потоков). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
+    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (256 МБ памяти, 5 итераций, 8 потоков). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
     <div class="modal-section"><div class="modal-h">📝 Режим «Текст»</div><ul class="modal-list"><li>Введите текст → «Зашифровать» → получите Base64-строку.</li><li>Отправьте её получателю — без пароля бесполезна.</li><li>Получатель вставляет строку, вводит пароль и расшифровывает.</li></ul></div>
     <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 2).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 34 байта, заголовок защищён AAD, drag&drop работает.</li></ul></div>
     <div class="modal-section"><div class="modal-h">⚠️ Безопасность пароля</div><p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p></div>
@@ -736,360 +736,329 @@ body::after {
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-// ========== АСИНХРОННАЯ ИНИЦИАЛИЗАЦИЯ ARGON2 ==========
-(async function() {
-  // Блокируем все кнопки до загрузки
-  const disableControls = (disabled) => {
-    const btn = document.getElementById('mainBtn');
-    if (btn) btn.disabled = disabled;
-    // Можно также заблокировать другие элементы, но основная кнопка – главная
-  };
-  disableControls(true);
+// ========== CRYPTO CORE (Argon2id + AAD) ==========
+const ENC = new TextEncoder();
+const DEC = new TextDecoder();
 
-  if (typeof argon2 !== 'undefined') {
-    try {
-      await argon2.init({ wasmPath: 'argon2-simd.wasm' });
-      console.log('✅ Argon2 WASM загружен (SIMD)');
-    } catch (err) {
-      console.error('❌ Ошибка загрузки WASM:', err);
-      document.body.innerHTML = '<div style="color:#ff4f4f; text-align:center; padding:2rem;">Ошибка: не удалось загрузить криптографический модуль. Проверьте наличие файла argon2-simd.wasm.</div>';
-      return;
-    }
-  } else {
-    console.warn('⚠️ Argon2 не определён');
-    document.body.innerHTML = '<div style="color:#ff4f4f; text-align:center; padding:2rem;">Ошибка: библиотека argon2 не загружена.</div>';
-    return;
-  }
+const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
+const BLOODY_VERSION = new Uint8Array([0x00, 0x02]); // версия 2
 
-  // После успешной загрузки – разблокируем интерфейс
-  disableControls(false);
+async function deriveKey(password, salt) {
+  const hash = await argon2.hash({
+    pass: password,
+    salt: salt,
+    time: 5,
+    mem: 256 * 1024,      // 256 MB
+    parallelism: 8,
+    hashLen: 32,
+    type: argon2.ArgonType.Argon2id
+  });
+  return crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+}
 
-  // ========== ВСЯ ОСТАЛЬНАЯ ЛОГИКА (криптоядро, UI, обработчики) ==========
-  const ENC = new TextEncoder();
-  const DEC = new TextDecoder();
+async function encryptBuf(buf, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt);
+  const header = new Uint8Array(6);
+  header.set(BLOODY_MAGIC, 0);
+  header.set(BLOODY_VERSION, 4);
+  const ct = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: header },
+    key,
+    buf
+  );
+  const result = new Uint8Array(6 + 16 + 12 + ct.byteLength);
+  result.set(header, 0);
+  result.set(salt, 6);
+  result.set(iv, 22);
+  result.set(new Uint8Array(ct), 34);
+  return result.buffer;
+}
 
-  const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
-  const BLOODY_VERSION = new Uint8Array([0x00, 0x02]);
-
-  async function deriveKey(password, salt) {
-    const hash = await argon2.hash({
-      pass: password,
-      salt: salt,
-      time: 5,
-      mem: 256 * 1024,      // 256 MB
-      parallelism: 8,
-      hashLen: 32,
-      type: argon2.ArgonType.Argon2id
-    });
-    return crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
-  }
-
-  async function encryptBuf(buf, password) {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const iv   = crypto.getRandomValues(new Uint8Array(12));
-    const key  = await deriveKey(password, salt);
-    const header = new Uint8Array(6);
-    header.set(BLOODY_MAGIC, 0);
-    header.set(BLOODY_VERSION, 4);
-    const ct = await crypto.subtle.encrypt(
+async function decryptBuf(buf, password) {
+  const data = new Uint8Array(buf);
+  if (data.length < 50) throw new Error('Файл слишком короткий или повреждён');
+  if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||
+      data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
+    throw new Error('Неверный формат файла (.bloody)');
+  const version = (data[4] << 8) | data[5];
+  if (version !== 0x0002) throw new Error('Неподдерживаемая версия файла (обновите BloodyKey)');
+  const header = data.slice(0, 6);
+  const salt = data.slice(6, 22);
+  const iv   = data.slice(22, 34);
+  const ct   = data.slice(34);
+  if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
+  const key = await deriveKey(password, salt);
+  try {
+    return await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv, additionalData: header },
       key,
-      buf
+      ct
     );
-    const result = new Uint8Array(6 + 16 + 12 + ct.byteLength);
-    result.set(header, 0);
-    result.set(salt, 6);
-    result.set(iv, 22);
-    result.set(new Uint8Array(ct), 34);
-    return result.buffer;
+  } catch {
+    throw new Error('Неверный пароль или данные повреждены');
   }
+}
 
-  async function decryptBuf(buf, password) {
-    const data = new Uint8Array(buf);
-    if (data.length < 50) throw new Error('Файл слишком короткий или повреждён');
-    if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||
-        data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
-      throw new Error('Неверный формат файла (.bloody)');
-    const version = (data[4] << 8) | data[5];
-    if (version !== 0x0002) throw new Error('Неподдерживаемая версия файла (обновите BloodyKey)');
-    const header = data.slice(0, 6);
-    const salt = data.slice(6, 22);
-    const iv   = data.slice(22, 34);
-    const ct   = data.slice(34);
-    if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
-    const key = await deriveKey(password, salt);
-    try {
-      return await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv, additionalData: header },
-        key,
-        ct
-      );
-    } catch {
-      throw new Error('Неверный пароль или данные повреждены');
-    }
-  }
+async function encryptText(plain, pw) {
+  const buf = await encryptBuf(ENC.encode(plain), pw);
+  const u8 = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return btoa(s);
+}
 
-  async function encryptText(plain, pw) {
-    const buf = await encryptBuf(ENC.encode(plain), pw);
-    const u8 = new Uint8Array(buf);
-    let s = '';
-    for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
-    return btoa(s);
-  }
+async function decryptText(b64, pw) {
+  const bin = atob(b64.trim());
+  const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
+  return DEC.decode(await decryptBuf(buf, pw));
+}
 
-  async function decryptText(b64, pw) {
-    const bin = atob(b64.trim());
-    const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
-    return DEC.decode(await decryptBuf(buf, pw));
-  }
-
-  function readFile(file) {
-    return new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result);
-      r.onerror = rej;
-      r.readAsArrayBuffer(file);
-    });
-  }
-
-  function downloadBlob(buf, name) {
-    const blob = new Blob([buf], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = name; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  // ========== UI STATE ==========
-  let mode = 'enc', dtype = 'text', fileEnc = null, fileDec = null, busy = false;
-
-  function $(id) { return document.getElementById(id); }
-  function show(id, v) { $(id).style.display = v ? '' : 'none'; }
-
-  function onKeyInput() {
-    const v = $('secretKey').value;
-    let s = 0;
-    if (v.length >= 4) s++;
-    if (v.length >= 8) s++;
-    if (v.length >= 12) s++;
-    if (/[A-Z]/.test(v) && /[0-9!@#$%^&*]/.test(v)) s++;
-    const cls = s <= 1 ? 'weak' : s <= 2 ? 'medium' : 'strong';
-    const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Сильный'};
-    for (let i=1;i<=4;i++) {
-      const b = $(`b${i}`);
-      b.className = 'bar' + (i<=s ? ' '+cls : '');
-    }
-    const lbl = $('strengthLabel');
-    lbl.textContent = labels[s]||'—';
-    lbl.style.color = s===0 ? 'var(--muted)' : (cls==='weak'?'var(--err)':(cls==='medium'?'var(--warn)':'var(--g)'));
-  }
-
-  function switchMode(m) {
-    mode = m;
-    $('tabEnc').className = 'tab' + (m==='enc' ? ' active-enc' : '');
-    $('tabDec').className = 'tab' + (m==='dec' ? ' active-dec' : '');
-    const isEnc = m==='enc';
-    $('mainBtn').className = 'btn ' + (isEnc ? 'btn-primary-enc' : 'btn-primary-dec');
-    const iconSpan = $('mainBtnIcon');
-    if (iconSpan) iconSpan.textContent = isEnc ? '🔐' : '🔓';
-    $('mainBtnText').textContent = isEnc ? 'Зашифровать' : 'Расшифровать';
-    hideResult();
-    setType(dtype);
-  }
-
-  function setType(t) {
-    dtype = t;
-    $('subText').classList.toggle('active', t==='text');
-    $('subFile').classList.toggle('active', t==='file');
-    show('areaTextEnc', t==='text' && mode==='enc');
-    show('areaFileEnc', t==='file' && mode==='enc');
-    show('areaTextDec', t==='text' && mode==='dec');
-    show('areaFileDec', t==='file' && mode==='dec');
-  }
-
-  function pickFile(e, side) {
-    const f = e.target.files[0];
-    if (f) setFile(f, side);
-  }
-  function setFile(f, side) {
-    if (side==='enc') fileEnc = f;
-    else fileDec = f;
-    const suffix = side==='enc' ? 'Enc' : 'Dec';
-    $(`fName${suffix}`).textContent = f.name;
-    $(`fSize${suffix}`).textContent = formatSize(f.size);
-    $(`fInfo${suffix}`).classList.add('show');
-  }
-  function clearFile(side) {
-    const suffix = side==='enc' ? 'Enc' : 'Dec';
-    if (side==='enc') { fileEnc = null; $('fInEnc').value = ''; }
-    else { fileDec = null; $('fInDec').value = ''; }
-    $(`fInfo${suffix}`).classList.remove('show');
-  }
-  function dragOver(e,id) { e.preventDefault(); $(id).classList.add('drag'); }
-  function dragLeave(id) { $(id).classList.remove('drag'); }
-  function dropFile(e, side) {
-    e.preventDefault();
-    const id = side==='enc' ? 'fpEnc' : 'fpDec';
-    $(id).classList.remove('drag');
-    const f = e.dataTransfer?.files?.[0];
-    if (f) {
-      if (side==='dec' && !f.name.endsWith('.bloody')) { toast('Ожидается файл .bloody!','err'); return; }
-      setFile(f, side);
-    }
-  }
-  function setProgress(p) {
-    const wrap = $('prog'), fill = $('progFill');
-    if (p<=0) { wrap.classList.remove('show'); fill.style.width='0%'; return; }
-    wrap.classList.add('show');
-    fill.style.width = Math.min(p,100)+'%';
-    if (p>=100) setTimeout(()=>setProgress(0),600);
-  }
-  function setBusy(v) {
-    busy = v;
-    const btn = $('mainBtn');
-    btn.disabled = v;
-    const iconSpan = $('mainBtnIcon');
-    const textSpan = $('mainBtnText');
-    if (v) {
-      if (iconSpan) iconSpan.innerHTML = '<span class="spinner"></span>';
-      if (textSpan) textSpan.textContent = 'Обработка…';
-    } else {
-      if (iconSpan) iconSpan.innerHTML = mode === 'enc' ? '🔐' : '🔓';
-      if (textSpan) textSpan.textContent = mode === 'enc' ? 'Зашифровать' : 'Расшифровать';
-    }
-  }
-
-  function showResult(text, title) {
-    $('resultTitle').textContent = title;
-    $('resultText').textContent = text;
-    $('resultCard').classList.add('show');
-  }
-  function hideResult() {
-    $('resultCard').classList.remove('show');
-    $('resultText').textContent = '';
-  }
-  function copyResult() {
-    const txt = $('resultText').textContent;
-    if (!txt) return;
-    navigator.clipboard.writeText(txt).then(()=>toast('Скопировано ✓')).catch(()=>{
-      const ta = Object.assign(document.createElement('textarea'),{value:txt});
-      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
-      toast('Скопировано ✓');
-    });
-  }
-  let _toastTimer;
-  function toast(msg, type='ok') {
-    const el = $('toast');
-    el.textContent = msg;
-    el.className = `toast show ${type}`;
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(()=>el.classList.remove('show'),2400);
-  }
-  function cnt(inputId, counterId) {
-    const n = $(inputId)?.value?.length || 0;
-    $(counterId).textContent = n.toLocaleString('ru')+' симв.';
-  }
-  function formatSize(b) {
-    if (b<1024) return b+' B';
-    if (b<1048576) return (b/1024).toFixed(1)+' KB';
-    return (b/1048576).toFixed(1)+' MB';
-  }
-  function clearAll() {
-    ['encIn','decIn'].forEach(id=>{ const e=$(id); if(e) e.value=''; });
-    $('secretKey').value='';
-    ['enc','dec'].forEach(s=>clearFile(s));
-    hideResult(); onKeyInput();
-    cnt('encIn','cntEnc'); cnt('decIn','cntDec');
-    toast('Очищено');
-  }
-  function togglePw() {
-    const inp = $('secretKey');
-    const isPw = inp.type === 'password';
-    inp.type = isPw ? 'text' : 'password';
-    $('pwToggle').textContent = isPw ? '🔒' : '👁';
-  }
-  function openHelp() { $('helpModal').classList.add('show'); }
-  function closeHelp() { $('helpModal').classList.remove('show'); }
-
-  async function doAction() {
-    if (busy) return;
-    const pw = $('secretKey').value;
-    if (!pw) return toast('Введите пароль!','err');
-    if (mode==='enc' && pw.length<12) return toast('Пароль: минимум 12 символов!','err');
-
-    setBusy(true);
-    await new Promise(r => requestAnimationFrame(r));
-    await new Promise(r => setTimeout(r, 10));
-
-    try {
-      if (mode==='enc') await doEncrypt(pw);
-      else await doDecrypt(pw);
-    } catch(e) {
-      toast('Ошибка: '+(e.message||'данные повреждены!'),'err');
-      console.error(e);
-    } finally {
-      setBusy(false);
-      setProgress(0);
-    }
-  }
-  async function doEncrypt(pw) {
-    if (dtype==='text') {
-      const txt = $('encIn').value.trim();
-      if (!txt) throw new Error('Введите текст!');
-      setProgress(30);
-      const result = await encryptText(txt, pw);
-      setProgress(100);
-      showResult(result, 'Зашифрованный текст (Base64)');
-      toast('Зашифровано ✓');
-    } else {
-      if (!fileEnc) throw new Error('Выберите файл!');
-      setProgress(20);
-      const buf = await readFile(fileEnc);
-      setProgress(60);
-      const enc = await encryptBuf(buf, pw);
-      setProgress(90);
-      downloadBlob(enc, fileEnc.name+'.bloody');
-      setProgress(100);
-      toast('Файл зашифрован | Ожидайте скачивания...');
-      clearFile('enc');
-    }
-  }
-  async function doDecrypt(pw) {
-    if (dtype==='text') {
-      const txt = $('decIn').value.trim();
-      if (!txt) throw new Error('Вставьте зашифрованный текст!');
-      setProgress(30);
-      const result = await decryptText(txt, pw);
-      setProgress(100);
-      showResult(result, 'Расшифрованный текст');
-      toast('Расшифровано ✓');
-    } else {
-      if (!fileDec) throw new Error('Выберите .bloody файл!');
-      setProgress(20);
-      const buf = await readFile(fileDec);
-      setProgress(60);
-      const dec = await decryptBuf(buf, pw);
-      setProgress(90);
-      let name = fileDec.name;
-      if (name.endsWith('.bloody')) name = name.slice(0,-7);
-      else name = 'decrypted_'+name;
-      downloadBlob(dec, name);
-      setProgress(100);
-      toast('Файл расшифрован | Ожидайте скачивания...');
-      clearFile('dec');
-    }
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key==='Escape') closeHelp();
-    if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e') { e.preventDefault(); doAction(); }
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsArrayBuffer(file);
   });
+}
 
-  // Инициализация UI
-  switchMode('enc');
-  setType('text');
-  onKeyInput();
-})();
+function downloadBlob(buf, name) {
+  const blob = new Blob([buf], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ========== UI ==========
+let mode = 'enc', dtype = 'text', fileEnc = null, fileDec = null, busy = false;
+
+function $(id) { return document.getElementById(id); }
+function show(id, v) { $(id).style.display = v ? '' : 'none'; }
+
+function onKeyInput() {
+  const v = $('secretKey').value;
+  let s = 0;
+  if (v.length >= 4) s++;
+  if (v.length >= 8) s++;
+  if (v.length >= 12) s++;
+  if (/[A-Z]/.test(v) && /[0-9!@#$%^&*]/.test(v)) s++;
+  const cls = s <= 1 ? 'weak' : s <= 2 ? 'medium' : 'strong';
+  const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Сильный'};
+  for (let i=1;i<=4;i++) {
+    const b = $(`b${i}`);
+    b.className = 'bar' + (i<=s ? ' '+cls : '');
+  }
+  const lbl = $('strengthLabel');
+  lbl.textContent = labels[s]||'—';
+  lbl.style.color = s===0 ? 'var(--muted)' : (cls==='weak'?'var(--err)':(cls==='medium'?'var(--warn)':'var(--g)'));
+}
+
+function switchMode(m) {
+  mode = m;
+  $('tabEnc').className = 'tab' + (m==='enc' ? ' active-enc' : '');
+  $('tabDec').className = 'tab' + (m==='dec' ? ' active-dec' : '');
+  const isEnc = m==='enc';
+  $('mainBtn').className = 'btn ' + (isEnc ? 'btn-primary-enc' : 'btn-primary-dec');
+  const iconSpan = $('mainBtnIcon');
+  if (iconSpan) iconSpan.textContent = isEnc ? '🔐' : '🔓';
+  $('mainBtnText').textContent = isEnc ? 'Зашифровать' : 'Расшифровать';
+  hideResult();
+  setType(dtype);
+}
+
+function setType(t) {
+  dtype = t;
+  $('subText').classList.toggle('active', t==='text');
+  $('subFile').classList.toggle('active', t==='file');
+  show('areaTextEnc', t==='text' && mode==='enc');
+  show('areaFileEnc', t==='file' && mode==='enc');
+  show('areaTextDec', t==='text' && mode==='dec');
+  show('areaFileDec', t==='file' && mode==='dec');
+}
+
+function pickFile(e, side) {
+  const f = e.target.files[0];
+  if (f) setFile(f, side);
+}
+function setFile(f, side) {
+  if (side==='enc') fileEnc = f;
+  else fileDec = f;
+  const suffix = side==='enc' ? 'Enc' : 'Dec';
+  $(`fName${suffix}`).textContent = f.name;
+  $(`fSize${suffix}`).textContent = formatSize(f.size);
+  $(`fInfo${suffix}`).classList.add('show');
+}
+function clearFile(side) {
+  const suffix = side==='enc' ? 'Enc' : 'Dec';
+  if (side==='enc') { fileEnc = null; $('fInEnc').value = ''; }
+  else { fileDec = null; $('fInDec').value = ''; }
+  $(`fInfo${suffix}`).classList.remove('show');
+}
+function dragOver(e,id) { e.preventDefault(); $(id).classList.add('drag'); }
+function dragLeave(id) { $(id).classList.remove('drag'); }
+function dropFile(e, side) {
+  e.preventDefault();
+  const id = side==='enc' ? 'fpEnc' : 'fpDec';
+  $(id).classList.remove('drag');
+  const f = e.dataTransfer?.files?.[0];
+  if (f) {
+    if (side==='dec' && !f.name.endsWith('.bloody')) { toast('Ожидается файл .bloody!','err'); return; }
+    setFile(f, side);
+  }
+}
+function setProgress(p) {
+  const wrap = $('prog'), fill = $('progFill');
+  if (p<=0) { wrap.classList.remove('show'); fill.style.width='0%'; return; }
+  wrap.classList.add('show');
+  fill.style.width = Math.min(p,100)+'%';
+  if (p>=100) setTimeout(()=>setProgress(0),600);
+}
+function setBusy(v) {
+  busy = v;
+  const btn = $('mainBtn');
+  btn.disabled = v;
+  const iconSpan = $('mainBtnIcon');
+  const textSpan = $('mainBtnText');
+  if (v) {
+    if (iconSpan) iconSpan.innerHTML = '<span class="spinner"></span>';
+    if (textSpan) textSpan.textContent = 'Обработка…';
+  } else {
+    if (iconSpan) iconSpan.innerHTML = mode === 'enc' ? '🔐' : '🔓';
+    if (textSpan) textSpan.textContent = mode === 'enc' ? 'Зашифровать' : 'Расшифровать';
+  }
+}
+
+function showResult(text, title) {
+  $('resultTitle').textContent = title;
+  $('resultText').textContent = text;
+  $('resultCard').classList.add('show');
+}
+function hideResult() {
+  $('resultCard').classList.remove('show');
+  $('resultText').textContent = '';
+}
+function copyResult() {
+  const txt = $('resultText').textContent;
+  if (!txt) return;
+  navigator.clipboard.writeText(txt).then(()=>toast('Скопировано ✓')).catch(()=>{
+    const ta = Object.assign(document.createElement('textarea'),{value:txt});
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    toast('Скопировано ✓');
+  });
+}
+let _toastTimer;
+function toast(msg, type='ok') {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>el.classList.remove('show'),2400);
+}
+function cnt(inputId, counterId) {
+  const n = $(inputId)?.value?.length || 0;
+  $(counterId).textContent = n.toLocaleString('ru')+' симв.';
+}
+function formatSize(b) {
+  if (b<1024) return b+' B';
+  if (b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+function clearAll() {
+  ['encIn','decIn'].forEach(id=>{ const e=$(id); if(e) e.value=''; });
+  $('secretKey').value='';
+  ['enc','dec'].forEach(s=>clearFile(s));
+  hideResult(); onKeyInput();
+  cnt('encIn','cntEnc'); cnt('decIn','cntDec');
+  toast('Очищено');
+}
+function togglePw() {
+  const inp = $('secretKey');
+  const isPw = inp.type === 'password';
+  inp.type = isPw ? 'text' : 'password';
+  $('pwToggle').textContent = isPw ? '🔒' : '👁';
+}
+function openHelp() { $('helpModal').classList.add('show'); }
+function closeHelp() { $('helpModal').classList.remove('show'); }
+
+async function doAction() {
+  if (busy) return;
+  const pw = $('secretKey').value;
+  if (!pw) return toast('Введите пароль!','err');
+  if (mode==='enc' && pw.length<12) return toast('Пароль: минимум 12 символов!','err');
+
+  setBusy(true);
+  await new Promise(r => requestAnimationFrame(r));
+  await new Promise(r => setTimeout(r, 10));
+
+  try {
+    if (mode==='enc') await doEncrypt(pw);
+    else await doDecrypt(pw);
+  } catch(e) {
+    toast('Ошибка: '+(e.message||'данные повреждены!'),'err');
+    console.error(e);
+  } finally {
+    setBusy(false);
+    setProgress(0);
+  }
+}
+async function doEncrypt(pw) {
+  if (dtype==='text') {
+    const txt = $('encIn').value.trim();
+    if (!txt) throw new Error('Введите текст!');
+    setProgress(30);
+    const result = await encryptText(txt, pw);
+    setProgress(100);
+    showResult(result, 'Зашифрованный текст (Base64)');
+    toast('Зашифровано ✓');
+  } else {
+    if (!fileEnc) throw new Error('Выберите файл!');
+    setProgress(20);
+    const buf = await readFile(fileEnc);
+    setProgress(60);
+    const enc = await encryptBuf(buf, pw);
+    setProgress(90);
+    downloadBlob(enc, fileEnc.name+'.bloody');
+    setProgress(100);
+    toast('Файл зашифрован | Ожидайте скачивания...');
+    clearFile('enc');
+  }
+}
+async function doDecrypt(pw) {
+  if (dtype==='text') {
+    const txt = $('decIn').value.trim();
+    if (!txt) throw new Error('Вставьте зашифрованный текст!');
+    setProgress(30);
+    const result = await decryptText(txt, pw);
+    setProgress(100);
+    showResult(result, 'Расшифрованный текст');
+    toast('Расшифровано ✓');
+  } else {
+    if (!fileDec) throw new Error('Выберите .bloody файл!');
+    setProgress(20);
+    const buf = await readFile(fileDec);
+    setProgress(60);
+    const dec = await decryptBuf(buf, pw);
+    setProgress(90);
+    let name = fileDec.name;
+    if (name.endsWith('.bloody')) name = name.slice(0,-7);
+    else name = 'decrypted_'+name;
+    downloadBlob(dec, name);
+    setProgress(100);
+    toast('Файл расшифрован | Ожидайте скачивания...');
+    clearFile('dec');
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') closeHelp();
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e') { e.preventDefault(); doAction(); }
+});
+switchMode('enc');
+setType('text');
+onKeyInput();
 </script>
 </body>
   </html>
