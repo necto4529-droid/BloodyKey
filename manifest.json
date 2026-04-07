@@ -1,0 +1,27 @@
+{
+  "name": "BloodyKey — Шифрование AES-256",
+  "short_name": "BloodyKey",
+  "description": "Локальное шифрование текста и файлов: AES-256-GCM + Argon2id. Без серверов, без слежки.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080814",
+  "theme_color": "#080814",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["security", "utilities", "productivity"],
+  "lang": "ru",
+  "dir": "ltr"
+}
