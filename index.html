@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="argon2-bundled.min.js"></script>
 <style>
+/* (ваши стили без изменений — они остаются теми же, что и в предыдущей версии) */
 :root {
   --g: #00ff88;
   --b: #00d9ff;
@@ -801,17 +802,45 @@ async function decryptBuf(buf, password) {
   }
 }
 
+// === Улучшенные функции для Base64 (без ограничения длины) ===
+function bufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function base64ToBuffer(base64) {
+  const binary = atob(base64.trim());
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+// Проверка валидности Base64 через попытку декодирования (без ограничения длины)
+function isValidBase64(str) {
+  try {
+    atob(str.trim());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function encryptText(plain, pw) {
   const buf = await encryptBuf(ENC.encode(plain), pw);
-  const u8 = new Uint8Array(buf);
-  let s = '';
-  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
-  return btoa(s);
+  return bufferToBase64(buf);
 }
 
 async function decryptText(b64, pw) {
-  const bin = atob(b64.trim());
-  const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
+  if (!isValidBase64(b64)) {
+    throw new Error('Некорректный формат Base64');
+  }
+  const buf = base64ToBuffer(b64);
   return DEC.decode(await decryptBuf(buf, pw));
 }
 
