@@ -96,8 +96,7 @@ body::after {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
-  padding: 0 4px;
-}
+  padding: 0 4px;}
 
 .logo {
   display: flex;
@@ -146,7 +145,7 @@ body::after {
   color: var(--g);
   border-radius: 50%;
   font-size: 15px;
-  font-weight: 700; cursor: pointer;
+  font-weight: 700;  cursor: pointer;
   transition: all .2s ease;
   display: flex; align-items: center; justify-content: center;
   font-family: 'JetBrains Mono', monospace;
@@ -195,8 +194,7 @@ body::after {
   background: rgba(0,255,136,.12);
   border-color: rgba(0,255,136,.5);
   color: var(--g);
-  box-shadow: 0 0 12px rgba(0,255,136,.4), inset 0 1px 1px rgba(255,255,255,.1);
-}
+  box-shadow: 0 0 12px rgba(0,255,136,.4), inset 0 1px 1px rgba(255,255,255,.1);}
 .tab.active-dec {
   background: rgba(0,217,255,.12);
   border-color: rgba(0,217,255,.5);
@@ -210,7 +208,7 @@ body::after {
   background: rgba(0,0,0,.35);
   border-radius: var(--r-sm);
   padding: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 .sub-tab {
   flex: 1;
@@ -229,31 +227,6 @@ body::after {
   background: rgba(0,255,136,.15);
   color: var(--g);
   box-shadow: 0 0 10px rgba(0,255,136,.2);
-}
-
-/* ✨ Улучшение #3: Бейдж параметров шифрования */
-.params-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0,255,136,.04);
-  border: 1px solid rgba(0,255,136,.1);
-  border-radius: 8px;
-  padding: 7px 12px;
-  margin-bottom: 14px;
-}
-.params-badge-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--g);
-  box-shadow: 0 0 6px rgba(0,255,136,.8);
-  flex-shrink: 0;
-}
-.params-badge-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: rgba(0,255,136,.55);
-  letter-spacing: .4px;
 }
 
 /* FIELDS */
@@ -319,8 +292,7 @@ body::after {
 .bar.weak   { background: var(--err); box-shadow: 0 0 6px rgba(255,79,79,.6); }
 .bar.medium { background: var(--warn); box-shadow: 0 0 6px rgba(255,166,43,.6); }
 .bar.strong { background: var(--g); box-shadow: 0 0 8px rgba(0,255,136,.8); }
-.strength-label {
-  font-size: 10px;
+.strength-label {  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -354,10 +326,11 @@ body::after {
   background: rgba(0,255,136,.07);
   border: 1px solid rgba(0,255,136,.2);
   border-radius: 10px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  display: none;
 }
 .file-info-row.show { display: flex; }
 .file-info-name { color: var(--g); font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
@@ -368,8 +341,7 @@ body::after {
 /* PROGRESS */
 .progress-wrap { height: 3px; background: rgba(255,255,255,.06); border-radius: 2px; margin: 12px 0; overflow: hidden; display: none; }
 .progress-wrap.show { display: block; }
-.progress-fill {
-  height: 100%; width: 0%;
+.progress-fill {  height: 100%; width: 0%;
   background: linear-gradient(90deg, var(--g), var(--b));
   border-radius: 2px;
   transition: width .25s ease;
@@ -410,13 +382,15 @@ body::after {
   transform: translate(-50%, -50%);
   transition: width 0.4s, height 0.4s;
 }
-.btn:active:after { width: 200%; height: 200%; }
+.btn:active:after {
+  width: 200%;
+  height: 200%;
+}
 
 .btn-primary-enc {
   background: linear-gradient(135deg, var(--g), var(--b));
   color: #080814;
-  box-shadow: 0 4px 16px rgba(0,255,136,.3);
-}
+  box-shadow: 0 4px 16px rgba(0,255,136,.3);}
 .btn-primary-enc:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(0,255,136,.5); transform: translateY(-1px); }
 
 .btn-primary-dec {
@@ -443,7 +417,8 @@ body::after {
 }
 .spinner {
   display: inline-block;
-  width: 16px; height: 16px;
+  width: 16px;
+  height: 16px;
   border: 2px solid rgba(0,0,0,.3);
   border-top-color: #080814;
   border-radius: 50%;
@@ -464,7 +439,10 @@ body::after {
   transform: translateY(8px);
   display: none;
 }
-.result-card.show { display: block; opacity: 1; transform: translateY(0); }
+.result-card.show {  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
 .result-header {
   display: flex;
   align-items: center;
@@ -510,8 +488,7 @@ body::after {
 .counter {
   text-align: right;
   color: rgba(0,255,136,.4);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;  font-size: 11px;
   margin-top: 5px;
 }
 
@@ -561,7 +538,6 @@ body::after {
   60% { transform: translateX(-50%) translateY(-5px); }
   100% { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
-
 .overlay {
   position: fixed;
   inset: 0;
@@ -610,8 +586,7 @@ body::after {
 .modal-close:hover { background: rgba(255,79,79,.15); border-color: rgba(255,79,79,.4); color: var(--err); }
 .modal-section { margin-bottom: 20px; }
 .modal-h { color: var(--g); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.modal-p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; }
-.modal-list { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; padding-left: 18px; }
+.modal-p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; }.modal-list { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; padding-left: 18px; }
 .modal-list li { margin-bottom: 4px; }
 
 .footer {
@@ -660,8 +635,7 @@ body::after {
         <span>Мастер-ключ</span>
         <span class="label-hint">Не сохраняется нигде</span>
       </div>
-      <div class="pw-wrap">
-        <input class="input" id="secretKey" type="password" placeholder="Минимум 12 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
+      <div class="pw-wrap">        <input class="input" id="secretKey" type="password" placeholder="Минимум 12 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
         <button class="pw-toggle" id="pwToggle" onclick="togglePw()" aria-label="Показать/скрыть пароль">👁</button>
       </div>
       <div class="strength-row">
@@ -672,12 +646,6 @@ body::after {
       </div>
     </div>
     <div class="warn-bar">⚠️ Передавайте пароль только лично или через зашифрованный канал!</div>
-  </div>
-
-  <!-- ✨ Улучшение #3: Бейдж текущих параметров Argon2id -->
-  <div class="params-badge">
-    <div class="params-badge-dot"></div>
-    <span class="params-badge-text" id="paramsBadgeText">…</span>
   </div>
 
   <div class="sub-tabs">
@@ -717,7 +685,6 @@ body::after {
         <div class="counter" id="cntDec">0 симв.</div>
       </div>
     </div>
-
     <div id="areaFileDec" style="display:none">
       <div class="label"><span>Зашифрованный файл (.bloody)</span></div>
       <div class="file-pick" id="fpDec" onclick="document.getElementById('fInDec').click()" ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
@@ -756,332 +723,89 @@ body::after {
     <div class="result-text" id="resultText"></div>
   </div>
 
-  <!-- ✨ Улучшение #1, #2: обновлён футер под новые параметры -->
-  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 256MB · ITER 3 · PARALLEL 4 · SALT 256BIT</div>
+  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 128MB · PARALLEL 4</div>
 </div>
 
-<!-- HELP MODAL -->
 <div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title">❓ Справка</span>
-      <button class="modal-close" onclick="closeHelp()">×</button>
-    </div>
-    <div class="modal-section">
-      <div class="modal-h">🔐 Как работает шифрование</div>
-      <p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (WASM). Пароль превращается в ключ через Argon2id (<strong>256 МБ памяти, 3 итерации, 4 потока, salt 32 байта</strong>). Argon2id работает в фоновом потоке — UI не зависает. Каждое шифрование уникально. Заголовок файла защищён AAD.</p>
-    </div>
-    <div class="modal-section">
-      <div class="modal-h">🔄 Версионирование параметров</div>
-      <p class="modal-p">Версия параметров Argon2id хранится в заголовке каждого .bloody файла. Это гарантирует, что старые файлы всегда корректно расшифруются, даже если параметры изменятся в будущем.</p>
-    </div>
-    <div class="modal-section">
-      <div class="modal-h">📝 Режим «Текст»</div>
-      <ul class="modal-list">
-        <li>Введите текст → «Зашифровать» → получите Base64-строку.</li>
-        <li>Отправьте её получателю — без пароля бесполезна.</li>
-        <li>Получатель вставляет строку, вводит пароль и расшифровывает.</li>
-      </ul>
-    </div>
-    <div class="modal-section">
-      <div class="modal-h">📁 Режим «Файл»</div>
-      <ul class="modal-list">
-        <li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (формат v3).</li>
-        <li>Оригинальное имя файла шифруется внутри контейнера — восстанавливается автоматически.</li>
-        <li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал с правильным именем.</li>
-        <li>Drag&amp;drop работает. Файлы v2 также поддерживаются.</li>
-      </ul>
-    </div>
-    <div class="modal-section">
-      <div class="modal-h">⚠️ Безопасность пароля</div>
-      <p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p>
-    </div>
-    <div class="modal-section">
-      <div class="modal-h">⌨️ Горячие клавиши</div>
-      <p class="modal-p">Ctrl+E — зашифровать / расшифровать</p>
-    </div>
-  </div>
+    <div class="modal-head"><span class="modal-title">❓ Справка</span><button class="modal-close" onclick="closeHelp()">×</button></div>
+    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 4 итераций, 4 потока). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
+    <div class="modal-section"><div class="modal-h">📝 Режим «Текст»</div><ul class="modal-list"><li>Введите текст → «Зашифровать» → получите Base64-строку.</li><li>Отправьте её получателю — без пароля бесполезна.</li><li>Получатель вставляет строку, вводит пароль и расшифровывает.</li></ul></div>
+    <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 2).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 34 байта, заголовок защищён AAD, drag&drop работает.</li></ul></div>
+    <div class="modal-section"><div class="modal-h">⚠️ Безопасность пароля</div><p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p></div>
+    <div class="modal-section"><div class="modal-h">⌨️ Горячие клавиши</div><p class="modal-p">Ctrl+E — зашифровать / расшифровать</p></div>  </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-// ============================================================
-// ✨ УЛУЧШЕНИЕ #8: Web Worker для Argon2id (не блокирует UI)
-// Используем Blob-URL чтобы не нужен был отдельный .js файл
-// ============================================================
-const ARGON2_WORKER_SRC = `
-self.importScripts('argon2-bundled.min.js');
-self.onmessage = async function(e) {
-  try {
-    const hash = await argon2.hash(e.data);
-    // Клонируем буфер и передаём как transferable
-    const buf = hash.hash.buffer.slice(
-      hash.hash.byteOffset,
-      hash.hash.byteOffset + hash.hash.byteLength
-    );
-    self.postMessage({ ok: true, buf }, [buf]);
-  } catch(err) {
-    self.postMessage({ ok: false, msg: err.message });
-  }
-};
-`;
+// ========== CRYPTO CORE (Argon2id + AAD) ==========
+const ENC = new TextEncoder();
+const DEC = new TextDecoder();
 
-let _workerBlobURL = null;
-function getWorkerURL() {
-  if (!_workerBlobURL) {
-    const blob = new Blob([ARGON2_WORKER_SRC], { type: 'application/javascript' });
-    _workerBlobURL = URL.createObjectURL(blob);
-  }
-  return _workerBlobURL;
-}
+const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
+const BLOODY_VERSION = new Uint8Array([0x00, 0x02]); // версия 2
 
-// Запускаем Argon2id в отдельном потоке; фоллбэк на главный если Workers недоступны
-function argon2InWorker(params) {
-  return new Promise((resolve, reject) => {
-    if (typeof Worker === 'undefined') {
-      // Фоллбэк: выполнить синхронно в главном потоке
-      argon2.hash(params)
-        .then(h => resolve(h.hash))
-        .catch(reject);
-      return;
-    }
-    const worker = new Worker(getWorkerURL());
-    worker.onmessage = ({ data }) => {
-      worker.terminate();
-      if (data.ok) resolve(new Uint8Array(data.buf));
-      else reject(new Error(data.msg));
-    };
-    worker.onerror = (e) => {
-      worker.terminate();
-      reject(new Error(e.message || 'Worker error'));
-    };
-    worker.postMessage(params);
-  });
-}
-
-// ============================================================
-// ✨ УЛУЧШЕНИЕ #3: Таблица версий параметров Argon2id
-// ВАЖНО: никогда не удалять старые записи — нужны для расшифровки!
-// ============================================================
-const PARAM_SETS = {
-  // v1 — исходные параметры (для расшифровки файлов, созданных в старых версиях BloodyKey)
-  0x01: { time: 4, mem: 128 * 1024, parallelism: 4, label: 'PARAMS v1 · Argon2id · 128MB · iter=4 · p=4 · salt=16B' },
-  // v2 — текущий стандарт (OWASP 2024+): 256 MB, 3 итерации
-  0x02: { time: 3, mem: 256 * 1024, parallelism: 4, label: 'PARAMS v2 · Argon2id · 256MB · iter=3 · p=4 · salt=32B' },
-};
-
-// Версия параметров для НОВЫХ шифрований
-const CURRENT_PARAMS_VERSION = 0x02;
-
-// ============================================================
-// CRYPTO CORE — AES-256-GCM + Argon2id
-// ============================================================
-const ENC_UTF8 = new TextEncoder();
-const DEC_UTF8 = new TextDecoder();
-
-/*
-  Формат файла .bloody
-
-  v2 (legacy, поддерживается для расшифровки):
-  [0..3]   MAGIC "BLOO"
-  [4..5]   FILE FORMAT 0x0002
-  [6..21]  SALT 16 байт
-  [22..33] IV 12 байт
-  [34..]   CIPHERTEXT + GCM TAG (16 байт в конце)
-  AAD = bytes[0..5]
-  Параметры Argon2id: PARAM_SETS[0x01]
-  Plaintext = сырые данные файла (без метаданных)
-
-  v3 (текущий):
-  [0..3]   MAGIC "BLOO"                       ← 4 байта
-  [4..5]   FILE FORMAT 0x0003                 ← 2 байта  ✨ Улучшение #3
-  [6]      PARAMS VERSION (0x01 или 0x02)     ← 1 байт
-  [7..38]  SALT 32 байта                      ← ✨ Улучшение #2
-  [39..50] IV 12 байт
-  [51..]   CIPHERTEXT + GCM TAG (16 байт в конце)
-  AAD = bytes[0..6] (включая байт версии параметров)
-  Plaintext = [4 байта uint32 LE: длина JSON][JSON метаданных][данные файла]
-              ← ✨ Улучшение #6: оригинальное имя файла внутри шифртекста
-*/
-
-const BLOODY_MAGIC      = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
-const FILE_FORMAT_V2    = new Uint8Array([0x00, 0x02]);
-const FILE_FORMAT_V3    = new Uint8Array([0x00, 0x03]);
-const HEADER_LEN_V3     = 7;  // magic(4) + format(2) + paramsVer(1)
-const SALT_LEN_V3       = 32; // ✨ Улучшение #2: 256-битный salt
-const IV_LEN            = 12;
-const PAYLOAD_OFFSET_V3 = HEADER_LEN_V3 + SALT_LEN_V3 + IV_LEN; // = 51
-
-async function deriveKey(password, salt, paramsVersion) {
-  const p = PARAM_SETS[paramsVersion];
-  if (!p) throw new Error(`Неизвестная версия параметров Argon2id: 0x${paramsVersion.toString(16)}`);
-
-  // ✨ Улучшение #8: Argon2id в Worker — UI не замерзает
-  const hashBytes = await argon2InWorker({
+async function deriveKey(password, salt) {
+  const hash = await argon2.hash({
     pass: password,
     salt: salt,
-    time: p.time,
-    mem: p.mem,
-    parallelism: p.parallelism,
+    time: 4,
+    mem: 128 * 1024,      // 128 MB
+    parallelism: 4,
     hashLen: 32,
-    type: argon2.ArgonType.Argon2id,
+    type: argon2.ArgonType.Argon2id
   });
-
-  return crypto.subtle.importKey(
-    'raw', hashBytes,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  return crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
 }
 
-// ✨ Улучшение #6: originalName передаётся и шифруется вместе с данными
-async function encryptBuf(buf, password, originalName) {
-  // ✨ Улучшение #2: salt 32 байта (256 бит)
-  const salt = crypto.getRandomValues(new Uint8Array(SALT_LEN_V3));
-  const iv   = crypto.getRandomValues(new Uint8Array(IV_LEN));
-
-  // ✨ Улучшение #3: версия параметров для этого шифрования
-  const paramsVer = CURRENT_PARAMS_VERSION;
-  const key = await deriveKey(password, salt, paramsVer);
-
-  // Заголовок (7 байт) — аутентифицируется как AAD, но не шифруется
-  const header = new Uint8Array(HEADER_LEN_V3);
+async function encryptBuf(buf, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt);
+  const header = new Uint8Array(6);
   header.set(BLOODY_MAGIC, 0);
-  header.set(FILE_FORMAT_V3, 4);
-  header[6] = paramsVer;
-
-  // ✨ Улучшение #6: упаковываем метаданные перед шифрованием
-  const metaJSON  = JSON.stringify({ name: originalName || '', ts: Date.now() });
-  const metaBytes = ENC_UTF8.encode(metaJSON);
-  const metaLen   = metaBytes.length;
-
-  // Plaintext = [4 байта uint32 LE: длина meta][meta][данные]
-  const plaintext = new Uint8Array(4 + metaLen + buf.byteLength);
-  new DataView(plaintext.buffer).setUint32(0, metaLen, /* littleEndian= */ true);
-  plaintext.set(metaBytes, 4);
-  plaintext.set(new Uint8Array(buf), 4 + metaLen);
-
+  header.set(BLOODY_VERSION, 4);
   const ct = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, additionalData: header },
     key,
-    plaintext
+    buf
   );
-
-  // Итоговый буфер: заголовок (7) + salt (32) + iv (12) + ciphertext
-  const out = new Uint8Array(PAYLOAD_OFFSET_V3 + ct.byteLength);
-  out.set(header, 0);
-  out.set(salt, HEADER_LEN_V3);
-  out.set(iv,   HEADER_LEN_V3 + SALT_LEN_V3);
-  out.set(new Uint8Array(ct), PAYLOAD_OFFSET_V3);
-  return out.buffer;
+  const result = new Uint8Array(6 + 16 + 12 + ct.byteLength);
+  result.set(header, 0);
+  result.set(salt, 6);
+  result.set(iv, 22);
+  result.set(new Uint8Array(ct), 34);
+  return result.buffer;
 }
 
-// Расшифровка — автоматически определяет версию формата
 async function decryptBuf(buf, password) {
   const data = new Uint8Array(buf);
-
-  if (data.length < 50)
-    throw new Error('Файл слишком короткий или повреждён');
-  if (data[0] !== 0x42 || data[1] !== 0x4C || data[2] !== 0x4F || data[3] !== 0x4F)
+  if (data.length < 50) throw new Error('Файл слишком короткий или повреждён');
+  if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||      data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
     throw new Error('Неверный формат файла (.bloody)');
-
-  const fileFormatVersion = (data[4] << 8) | data[5];
-
-  // ✨ Обратная совместимость: поддержка старого формата v2
-  if (fileFormatVersion === 0x0002) {
-    return _decryptV2Legacy(data, password);
-  }
-  if (fileFormatVersion === 0x0003) {
-    return _decryptV3(data, password);
-  }
-
-  throw new Error(`Неподдерживаемая версия формата файла: 0x${fileFormatVersion.toString(16).padStart(4,'0')} (обновите BloodyKey)`);
-}
-
-// Расшифровка формата v3 (текущий)
-async function _decryptV3(data, password) {
-  if (data.length < PAYLOAD_OFFSET_V3 + 16)
-    throw new Error('Файл повреждён (слишком короткий для v3)');
-
-  // ✨ Улучшение #3: читаем версию параметров из заголовка
-  const paramsVer = data[6];
-  if (!PARAM_SETS[paramsVer])
-    throw new Error(`Неизвестная версия параметров Argon2id в файле: 0x${paramsVer.toString(16)}`);
-
-  const header    = data.slice(0, HEADER_LEN_V3);
-  const salt      = data.slice(HEADER_LEN_V3, HEADER_LEN_V3 + SALT_LEN_V3);
-  const iv        = data.slice(HEADER_LEN_V3 + SALT_LEN_V3, PAYLOAD_OFFSET_V3);
-  const ct        = data.slice(PAYLOAD_OFFSET_V3);
-
-  if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
-
-  const key = await deriveKey(password, salt, paramsVer);
-
-  let plaintext;
-  try {
-    plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv, additionalData: header },
-      key, ct
-    );
-  } catch {
-    throw new Error('Неверный пароль или данные повреждены');
-  }
-
-  // ✨ Улучшение #6: извлекаем метаданные из расшифрованного plaintext
-  const ptView  = new DataView(plaintext);
-  const metaLen = ptView.getUint32(0, /* littleEndian= */ true);
-  const ptBytes = new Uint8Array(plaintext);
-
-  let originalName = '';
-  let fileData;
-
-  if (metaLen > 0 && metaLen <= ptBytes.length - 4) {
-    try {
-      const metaStr = DEC_UTF8.decode(ptBytes.slice(4, 4 + metaLen));
-      const meta    = JSON.parse(metaStr);
-      originalName  = meta.name || '';
-    } catch { /* если метаданные повреждены — не критично */ }
-    fileData = ptBytes.slice(4 + metaLen).buffer;
-  } else {
-    fileData = plaintext; // на случай аномалий
-  }
-
-  return { data: fileData, originalName };
-}
-
-// ✨ Обратная совместимость: расшифровка старого формата v2
-async function _decryptV2Legacy(data, password) {
-  if (data.length < 50) throw new Error('Файл повреждён (v2 legacy)');
-
+  const version = (data[4] << 8) | data[5];
+  if (version !== 0x0002) throw new Error('Неподдерживаемая версия файла (обновите BloodyKey)');
   const header = data.slice(0, 6);
-  const salt   = data.slice(6, 22);   // 16 байт — старый формат
-  const iv     = data.slice(22, 34);
-  const ct     = data.slice(34);
-
-  if (ct.length < 16) throw new Error('Повреждённый файл v2 (нет auth tag)');
-
-  // v2 всегда создавался с параметрами PARAM_SETS[0x01]
-  const key = await deriveKey(password, salt, 0x01);
-
-  let plaintext;
+  const salt = data.slice(6, 22);
+  const iv   = data.slice(22, 34);
+  const ct   = data.slice(34);
+  if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
+  const key = await deriveKey(password, salt);
   try {
-    plaintext = await crypto.subtle.decrypt(
+    return await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv, additionalData: header },
-      key, ct
+      key,
+      ct
     );
   } catch {
     throw new Error('Неверный пароль или данные повреждены');
   }
-
-  // В v2 метаданных нет — имя файла придётся взять из имени .bloody файла
-  return { data: plaintext, originalName: '' };
 }
 
 async function encryptText(plain, pw) {
-  const buf = await encryptBuf(ENC_UTF8.encode(plain), pw, '');
-  const u8  = new Uint8Array(buf);
+  const buf = await encryptBuf(ENC.encode(plain), pw);
+  const u8 = new Uint8Array(buf);
   let s = '';
   for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
   return btoa(s);
@@ -1090,14 +814,13 @@ async function encryptText(plain, pw) {
 async function decryptText(b64, pw) {
   const bin = atob(b64.trim());
   const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
-  const { data } = await decryptBuf(buf, pw);
-  return DEC_UTF8.decode(data);
+  return DEC.decode(await decryptBuf(buf, pw));
 }
 
 function readFile(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
-    r.onload  = () => res(r.result);
+    r.onload = () => res(r.result);
     r.onerror = rej;
     r.readAsArrayBuffer(file);
   });
@@ -1105,15 +828,12 @@ function readFile(file) {
 
 function downloadBlob(buf, name) {
   const blob = new Blob([buf], { type: 'application/octet-stream' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   a.href = url; a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+  setTimeout(() => URL.revokeObjectURL(url), 1000);}
 
-// ============================================================
-// UI
-// ============================================================
+// ========== UI ==========
 let mode = 'enc', dtype = 'text', fileEnc = null, fileDec = null, busy = false;
 
 function $(id) { return document.getElementById(id); }
@@ -1127,28 +847,21 @@ function onKeyInput() {
   if (v.length >= 12) s++;
   if (/[A-Z]/.test(v) && /[0-9!@#$%^&*]/.test(v)) s++;
   const cls = s <= 1 ? 'weak' : s <= 2 ? 'medium' : 'strong';
-  const labels = { 0: '—', 1: 'Слабый', 2: 'Средний', 3: 'Хороший', 4: 'Сильный' };
-  for (let i = 1; i <= 4; i++) {
-    $(`b${i}`).className = 'bar' + (i <= s ? ' ' + cls : '');
+  const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Сильный'};
+  for (let i=1;i<=4;i++) {
+    const b = $(`b${i}`);
+    b.className = 'bar' + (i<=s ? ' '+cls : '');
   }
   const lbl = $('strengthLabel');
-  lbl.textContent = labels[s] || '—';
-  lbl.style.color = s === 0 ? 'var(--muted)' : (cls === 'weak' ? 'var(--err)' : (cls === 'medium' ? 'var(--warn)' : 'var(--g)'));
-}
-
-// ✨ Улучшение #3: обновить бейдж параметров в шапке
-function updateParamsBadge() {
-  const p = PARAM_SETS[CURRENT_PARAMS_VERSION];
-  if (p && $('paramsBadgeText')) {
-    $('paramsBadgeText').textContent = p.label + ' · AES-256-GCM';
-  }
+  lbl.textContent = labels[s]||'—';
+  lbl.style.color = s===0 ? 'var(--muted)' : (cls==='weak'?'var(--err)':(cls==='medium'?'var(--warn)':'var(--g)'));
 }
 
 function switchMode(m) {
   mode = m;
-  $('tabEnc').className = 'tab' + (m === 'enc' ? ' active-enc' : '');
-  $('tabDec').className = 'tab' + (m === 'dec' ? ' active-dec' : '');
-  const isEnc = m === 'enc';
+  $('tabEnc').className = 'tab' + (m==='enc' ? ' active-enc' : '');
+  $('tabDec').className = 'tab' + (m==='dec' ? ' active-dec' : '');
+  const isEnc = m==='enc';
   $('mainBtn').className = 'btn ' + (isEnc ? 'btn-primary-enc' : 'btn-primary-dec');
   const iconSpan = $('mainBtnIcon');
   if (iconSpan) iconSpan.textContent = isEnc ? '🔐' : '🔓';
@@ -1159,67 +872,67 @@ function switchMode(m) {
 
 function setType(t) {
   dtype = t;
-  $('subText').classList.toggle('active', t === 'text');
-  $('subFile').classList.toggle('active', t === 'file');
-  show('areaTextEnc', t === 'text' && mode === 'enc');
-  show('areaFileEnc', t === 'file' && mode === 'enc');
-  show('areaTextDec', t === 'text' && mode === 'dec');
-  show('areaFileDec', t === 'file' && mode === 'dec');
+  $('subText').classList.toggle('active', t==='text');
+  $('subFile').classList.toggle('active', t==='file');
+  show('areaTextEnc', t==='text' && mode==='enc');
+  show('areaFileEnc', t==='file' && mode==='enc');
+  show('areaTextDec', t==='text' && mode==='dec');
+  show('areaFileDec', t==='file' && mode==='dec');
 }
 
-function pickFile(e, side) {
-  const f = e.target.files[0];
+function pickFile(e, side) {  const f = e.target.files[0];
   if (f) setFile(f, side);
 }
 function setFile(f, side) {
-  if (side === 'enc') fileEnc = f; else fileDec = f;
-  const sfx = side === 'enc' ? 'Enc' : 'Dec';
-  $(`fName${sfx}`).textContent = f.name;
-  $(`fSize${sfx}`).textContent = formatSize(f.size);
-  $(`fInfo${sfx}`).classList.add('show');
+  if (side==='enc') fileEnc = f;
+  else fileDec = f;
+  const suffix = side==='enc' ? 'Enc' : 'Dec';
+  $(`fName${suffix}`).textContent = f.name;
+  $(`fSize${suffix}`).textContent = formatSize(f.size);
+  $(`fInfo${suffix}`).classList.add('show');
 }
 function clearFile(side) {
-  const sfx = side === 'enc' ? 'Enc' : 'Dec';
-  if (side === 'enc') { fileEnc = null; $('fInEnc').value = ''; }
-  else                { fileDec = null; $('fInDec').value = ''; }
-  $(`fInfo${sfx}`).classList.remove('show');
+  const suffix = side==='enc' ? 'Enc' : 'Dec';
+  if (side==='enc') { fileEnc = null; $('fInEnc').value = ''; }
+  else { fileDec = null; $('fInDec').value = ''; }
+  $(`fInfo${suffix}`).classList.remove('show');
 }
-function dragOver(e, id)  { e.preventDefault(); $(id).classList.add('drag'); }
-function dragLeave(id)    { $(id).classList.remove('drag'); }
+function dragOver(e,id) { e.preventDefault(); $(id).classList.add('drag'); }
+function dragLeave(id) { $(id).classList.remove('drag'); }
 function dropFile(e, side) {
   e.preventDefault();
-  const id = side === 'enc' ? 'fpEnc' : 'fpDec';
+  const id = side==='enc' ? 'fpEnc' : 'fpDec';
   $(id).classList.remove('drag');
   const f = e.dataTransfer?.files?.[0];
   if (f) {
-    if (side === 'dec' && !f.name.endsWith('.bloody')) { toast('Ожидается файл .bloody!', 'err'); return; }
+    if (side==='dec' && !f.name.endsWith('.bloody')) { toast('Ожидается файл .bloody!','err'); return; }
     setFile(f, side);
   }
 }
 function setProgress(p) {
   const wrap = $('prog'), fill = $('progFill');
-  if (p <= 0) { wrap.classList.remove('show'); fill.style.width = '0%'; return; }
+  if (p<=0) { wrap.classList.remove('show'); fill.style.width='0%'; return; }
   wrap.classList.add('show');
-  fill.style.width = Math.min(p, 100) + '%';
-  if (p >= 100) setTimeout(() => setProgress(0), 600);
+  fill.style.width = Math.min(p,100)+'%';
+  if (p>=100) setTimeout(()=>setProgress(0),600);
 }
 function setBusy(v) {
   busy = v;
-  const btn      = $('mainBtn');
+  const btn = $('mainBtn');
+  btn.disabled = v;
   const iconSpan = $('mainBtnIcon');
   const textSpan = $('mainBtnText');
-  btn.disabled = v;
   if (v) {
     if (iconSpan) iconSpan.innerHTML = '<span class="spinner"></span>';
     if (textSpan) textSpan.textContent = 'Обработка…';
   } else {
-    if (iconSpan) iconSpan.innerHTML  = mode === 'enc' ? '🔐' : '🔓';
+    if (iconSpan) iconSpan.innerHTML = mode === 'enc' ? '🔐' : '🔓';
     if (textSpan) textSpan.textContent = mode === 'enc' ? 'Зашифровать' : 'Расшифровать';
   }
 }
 function showResult(text, title) {
   $('resultTitle').textContent = title;
-  $('resultText').textContent  = text;
+  $('resultText').textContent = text;
   $('resultCard').classList.add('show');
 }
 function hideResult() {
@@ -1229,35 +942,35 @@ function hideResult() {
 function copyResult() {
   const txt = $('resultText').textContent;
   if (!txt) return;
-  navigator.clipboard.writeText(txt).then(() => toast('Скопировано ✓')).catch(() => {
-    const ta = Object.assign(document.createElement('textarea'), { value: txt });
+  navigator.clipboard.writeText(txt).then(()=>toast('Скопировано ✓')).catch(()=>{
+    const ta = Object.assign(document.createElement('textarea'),{value:txt});
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
     toast('Скопировано ✓');
   });
 }
 let _toastTimer;
-function toast(msg, type = 'ok') {
+function toast(msg, type='ok') {
   const el = $('toast');
   el.textContent = msg;
   el.className = `toast show ${type}`;
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  _toastTimer = setTimeout(()=>el.classList.remove('show'),2400);
 }
 function cnt(inputId, counterId) {
   const n = $(inputId)?.value?.length || 0;
-  $(counterId).textContent = n.toLocaleString('ru') + ' симв.';
+  $(counterId).textContent = n.toLocaleString('ru')+' симв.';
 }
 function formatSize(b) {
-  if (b < 1024)    return b + ' B';
-  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
-  return (b / 1048576).toFixed(1) + ' MB';
+  if (b<1024) return b+' B';
+  if (b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
 }
 function clearAll() {
-  ['encIn', 'decIn'].forEach(id => { const e = $(id); if (e) e.value = ''; });
-  $('secretKey').value = '';
-  ['enc', 'dec'].forEach(s => clearFile(s));
+  ['encIn','decIn'].forEach(id=>{ const e=$(id); if(e) e.value=''; });
+  $('secretKey').value='';
+  ['enc','dec'].forEach(s=>clearFile(s));
   hideResult(); onKeyInput();
-  cnt('encIn', 'cntEnc'); cnt('decIn', 'cntDec');
+  cnt('encIn','cntEnc'); cnt('decIn','cntDec');
   toast('Очищено');
 }
 function togglePw() {
@@ -1265,34 +978,32 @@ function togglePw() {
   const isPw = inp.type === 'password';
   inp.type = isPw ? 'text' : 'password';
   $('pwToggle').textContent = isPw ? '🔒' : '👁';
-}
-function openHelp()  { $('helpModal').classList.add('show'); }
+}function openHelp() { $('helpModal').classList.add('show'); }
 function closeHelp() { $('helpModal').classList.remove('show'); }
 
 async function doAction() {
   if (busy) return;
   const pw = $('secretKey').value;
-  if (!pw) return toast('Введите пароль!', 'err');
-  if (mode === 'enc' && pw.length < 12) return toast('Пароль: минимум 12 символов!', 'err');
+  if (!pw) return toast('Введите пароль!','err');
+  if (mode==='enc' && pw.length<12) return toast('Пароль: минимум 12 символов!','err');
 
   setBusy(true);
   await new Promise(r => requestAnimationFrame(r));
   await new Promise(r => setTimeout(r, 10));
 
   try {
-    if (mode === 'enc') await doEncrypt(pw);
-    else                await doDecrypt(pw);
+    if (mode==='enc') await doEncrypt(pw);
+    else await doDecrypt(pw);
   } catch(e) {
-    toast('Ошибка: ' + (e.message || 'данные повреждены!'), 'err');
+    toast('Ошибка: '+(e.message||'данные повреждены!'),'err');
     console.error(e);
   } finally {
     setBusy(false);
     setProgress(0);
   }
 }
-
 async function doEncrypt(pw) {
-  if (dtype === 'text') {
+  if (dtype==='text') {
     const txt = $('encIn').value.trim();
     if (!txt) throw new Error('Введите текст!');
     setProgress(30);
@@ -1304,22 +1015,19 @@ async function doEncrypt(pw) {
     if (!fileEnc) throw new Error('Выберите файл!');
     setProgress(20);
     const buf = await readFile(fileEnc);
-    setProgress(50);
-    // ✨ Улучшение #6: передаём оригинальное имя файла для сохранения внутри шифртекста
-    const enc = await encryptBuf(buf, pw, fileEnc.name);
+    setProgress(60);
+    const enc = await encryptBuf(buf, pw);
     setProgress(90);
-    downloadBlob(enc, fileEnc.name + '.bloody');
+    downloadBlob(enc, fileEnc.name+'.bloody');
     setProgress(100);
     toast('Файл зашифрован | Ожидайте скачивания...');
     clearFile('enc');
   }
 }
-
 async function doDecrypt(pw) {
-  if (dtype === 'text') {
+  if (dtype==='text') {
     const txt = $('decIn').value.trim();
-    if (!txt) throw new Error('Вставьте зашифрованный текст!');
-    setProgress(30);
+    if (!txt) throw new Error('Вставьте зашифрованный текст!');    setProgress(30);
     const result = await decryptText(txt, pw);
     setProgress(100);
     showResult(result, 'Расшифрованный текст');
@@ -1328,22 +1036,13 @@ async function doDecrypt(pw) {
     if (!fileDec) throw new Error('Выберите .bloody файл!');
     setProgress(20);
     const buf = await readFile(fileDec);
-    setProgress(50);
-    // ✨ Улучшение #6: originalName берётся из метаданных внутри шифртекста
-    const { data: decData, originalName } = await decryptBuf(buf, pw);
+    setProgress(60);
+    const dec = await decryptBuf(buf, pw);
     setProgress(90);
-
-    let name;
-    if (originalName) {
-      name = originalName; // имя сохранено внутри контейнера — используем
-    } else {
-      // Фоллбэк для v2-файлов без метаданных
-      name = fileDec.name;
-      if (name.endsWith('.bloody')) name = name.slice(0, -7);
-      else name = 'decrypted_' + name;
-    }
-
-    downloadBlob(decData, name);
+    let name = fileDec.name;
+    if (name.endsWith('.bloody')) name = name.slice(0,-7);
+    else name = 'decrypted_'+name;
+    downloadBlob(dec, name);
     setProgress(100);
     toast('Файл расшифрован | Ожидайте скачивания...');
     clearFile('dec');
@@ -1351,11 +1050,11 @@ async function doDecrypt(pw) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeHelp();
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); doAction(); }
+  if (e.key==='Escape') closeHelp();
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e') { e.preventDefault(); doAction(); }
 });
 
-// 🔧 Service Worker для офлайн-работы
+// 🔧 Регистрация Service Worker для офлайн-работы
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -1364,11 +1063,9 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Инициализация
 switchMode('enc');
 setType('text');
 onKeyInput();
-updateParamsBadge(); // ✨ Улучшение #3: показать текущие параметры в бейдже
 </script>
 </body>
-  </html>
+</html>
