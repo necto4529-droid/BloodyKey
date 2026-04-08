@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>BloodyKey | AES-256-GCM + Argon2id</title>
+<title>BloodyKey | AES-256-GCM + Argon2id (v3)</title>
 
-<!-- 🔗 PWA: Manifest -->
+<!-- PWA: Manifest -->
 <link rel="manifest" href="manifest.json">
 
-<!-- 🎨 Иконки для разных устройств -->
+<!-- Иконки для разных устройств -->
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
 <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
 
-<!-- 📱 Мета-теги для iOS -->
+<!-- Мета-теги для iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BloodyKey">
 
-<!-- 🎨 Цвет темы для мобильных браузеров -->
+<!-- Цвет темы для мобильных браузеров -->
 <meta name="theme-color" content="#080814">
 <meta name="msapplication-TileColor" content="#080814">
 
@@ -26,6 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="argon2-bundled.min.js"></script>
 <style>
+/* (все стили остаются без изменений — они такие же, как в предыдущей версии) */
 :root {
   --g: #00ff88;
   --b: #00d9ff;
@@ -47,7 +48,8 @@ body {
   min-height: 100vh;
   background: var(--bg);
   display: flex;
-  justify-content: center;  align-items: flex-start;
+  justify-content: center;
+  align-items: flex-start;
   padding: 20px 16px 40px;
   position: relative;
   overflow-x: hidden;
@@ -96,7 +98,8 @@ body::after {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
-  padding: 0 4px;}
+  padding: 0 4px;
+}
 
 .logo {
   display: flex;
@@ -145,7 +148,8 @@ body::after {
   color: var(--g);
   border-radius: 50%;
   font-size: 15px;
-  font-weight: 700;  cursor: pointer;
+  font-weight: 700;
+  cursor: pointer;
   transition: all .2s ease;
   display: flex; align-items: center; justify-content: center;
   font-family: 'JetBrains Mono', monospace;
@@ -194,7 +198,8 @@ body::after {
   background: rgba(0,255,136,.12);
   border-color: rgba(0,255,136,.5);
   color: var(--g);
-  box-shadow: 0 0 12px rgba(0,255,136,.4), inset 0 1px 1px rgba(255,255,255,.1);}
+  box-shadow: 0 0 12px rgba(0,255,136,.4), inset 0 1px 1px rgba(255,255,255,.1);
+}
 .tab.active-dec {
   background: rgba(0,217,255,.12);
   border-color: rgba(0,217,255,.5);
@@ -243,6 +248,7 @@ body::after {
   margin-bottom: 8px;
 }
 .label-hint { font-size: 11px; color: rgba(255,255,255,.25); text-transform: none; letter-spacing: 0; }
+
 .input, .textarea {
   width: 100%;
   background: rgba(0,0,0,.4);
@@ -292,7 +298,8 @@ body::after {
 .bar.weak   { background: var(--err); box-shadow: 0 0 6px rgba(255,79,79,.6); }
 .bar.medium { background: var(--warn); box-shadow: 0 0 6px rgba(255,166,43,.6); }
 .bar.strong { background: var(--g); box-shadow: 0 0 8px rgba(0,255,136,.8); }
-.strength-label {  font-size: 10px;
+.strength-label {
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -341,7 +348,8 @@ body::after {
 /* PROGRESS */
 .progress-wrap { height: 3px; background: rgba(255,255,255,.06); border-radius: 2px; margin: 12px 0; overflow: hidden; display: none; }
 .progress-wrap.show { display: block; }
-.progress-fill {  height: 100%; width: 0%;
+.progress-fill {
+  height: 100%; width: 0%;
   background: linear-gradient(90deg, var(--g), var(--b));
   border-radius: 2px;
   transition: width .25s ease;
@@ -390,7 +398,8 @@ body::after {
 .btn-primary-enc {
   background: linear-gradient(135deg, var(--g), var(--b));
   color: #080814;
-  box-shadow: 0 4px 16px rgba(0,255,136,.3);}
+  box-shadow: 0 4px 16px rgba(0,255,136,.3);
+}
 .btn-primary-enc:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(0,255,136,.5); transform: translateY(-1px); }
 
 .btn-primary-dec {
@@ -439,7 +448,8 @@ body::after {
   transform: translateY(8px);
   display: none;
 }
-.result-card.show {  display: block;
+.result-card.show {
+  display: block;
   opacity: 1;
   transform: translateY(0);
 }
@@ -488,7 +498,8 @@ body::after {
 .counter {
   text-align: right;
   color: rgba(0,255,136,.4);
-  font-family: 'JetBrains Mono', monospace;  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
   margin-top: 5px;
 }
 
@@ -538,6 +549,7 @@ body::after {
   60% { transform: translateX(-50%) translateY(-5px); }
   100% { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -586,7 +598,8 @@ body::after {
 .modal-close:hover { background: rgba(255,79,79,.15); border-color: rgba(255,79,79,.4); color: var(--err); }
 .modal-section { margin-bottom: 20px; }
 .modal-h { color: var(--g); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.modal-p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; }.modal-list { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; padding-left: 18px; }
+.modal-p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; }
+.modal-list { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; padding-left: 18px; }
 .modal-list li { margin-bottom: 4px; }
 
 .footer {
@@ -635,7 +648,8 @@ body::after {
         <span>Мастер-ключ</span>
         <span class="label-hint">Не сохраняется нигде</span>
       </div>
-      <div class="pw-wrap">        <input class="input" id="secretKey" type="password" placeholder="Минимум 12 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
+      <div class="pw-wrap">
+        <input class="input" id="secretKey" type="password" placeholder="Минимум 12 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
         <button class="pw-toggle" id="pwToggle" onclick="togglePw()" aria-label="Показать/скрыть пароль">👁</button>
       </div>
       <div class="strength-row">
@@ -685,6 +699,7 @@ body::after {
         <div class="counter" id="cntDec">0 симв.</div>
       </div>
     </div>
+
     <div id="areaFileDec" style="display:none">
       <div class="label"><span>Зашифрованный файл (.bloody)</span></div>
       <div class="file-pick" id="fpDec" onclick="document.getElementById('fInDec').click()" ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
@@ -723,17 +738,18 @@ body::after {
     <div class="result-text" id="resultText"></div>
   </div>
 
-  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 128MB · PARALLEL 4</div>
+  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 128MB · 5 итераций · v3</div>
 </div>
 
 <div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="modal">
     <div class="modal-head"><span class="modal-title">❓ Справка</span><button class="modal-close" onclick="closeHelp()">×</button></div>
-    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 4 итераций, 4 потока). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
+    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 5 итераций, 4 потока). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
     <div class="modal-section"><div class="modal-h">📝 Режим «Текст»</div><ul class="modal-list"><li>Введите текст → «Зашифровать» → получите Base64-строку.</li><li>Отправьте её получателю — без пароля бесполезна.</li><li>Получатель вставляет строку, вводит пароль и расшифровывает.</li></ul></div>
-    <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 2).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 34 байта, заголовок защищён AAD, drag&drop работает.</li></ul></div>
+    <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 3).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 50 байт (32 соль + 12 IV + 6 заголовок), заголовок защищён AAD, drag&drop работает.</li><li>Поддерживаются старые файлы версии 2 (соль 16 байт).</li></ul></div>
     <div class="modal-section"><div class="modal-h">⚠️ Безопасность пароля</div><p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p></div>
-    <div class="modal-section"><div class="modal-h">⌨️ Горячие клавиши</div><p class="modal-p">Ctrl+E — зашифровать / расшифровать</p></div>  </div>
+    <div class="modal-section"><div class="modal-h">⌨️ Горячие клавиши</div><p class="modal-p">Ctrl+E — зашифровать / расшифровать</p></div>
+  </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -744,14 +760,17 @@ const ENC = new TextEncoder();
 const DEC = new TextDecoder();
 
 const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
-const BLOODY_VERSION = new Uint8Array([0x00, 0x02]); // версия 2
+// Версия 3: соль 32 байта
+const BLOODY_VERSION_V3 = new Uint8Array([0x00, 0x03]);
+// Версия 2: соль 16 байт (для обратной совместимости)
+const BLOODY_VERSION_V2 = new Uint8Array([0x00, 0x02]);
 
 async function deriveKey(password, salt) {
   const hash = await argon2.hash({
     pass: password,
     salt: salt,
-    time: 4,
-    mem: 128 * 1024,      // 128 MB
+    time: 5,                // Увеличено с 4 до 5
+    mem: 128 * 1024,        // 128 MB
     parallelism: 4,
     hashLen: 32,
     type: argon2.ArgonType.Argon2id
@@ -759,37 +778,57 @@ async function deriveKey(password, salt) {
   return crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
 }
 
+// Шифрование файла (версия 3, соль 32 байта)
 async function encryptBuf(buf, password) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const salt = crypto.getRandomValues(new Uint8Array(32)); // 32 байта
   const iv   = crypto.getRandomValues(new Uint8Array(12));
   const key  = await deriveKey(password, salt);
   const header = new Uint8Array(6);
   header.set(BLOODY_MAGIC, 0);
-  header.set(BLOODY_VERSION, 4);
+  header.set(BLOODY_VERSION_V3, 4);
   const ct = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, additionalData: header },
     key,
     buf
   );
-  const result = new Uint8Array(6 + 16 + 12 + ct.byteLength);
+  const result = new Uint8Array(6 + 32 + 12 + ct.byteLength);
   result.set(header, 0);
   result.set(salt, 6);
-  result.set(iv, 22);
-  result.set(new Uint8Array(ct), 34);
+  result.set(iv, 38);
+  result.set(new Uint8Array(ct), 50);
   return result.buffer;
 }
 
+// Расшифровка файла (поддержка версий 2 и 3)
 async function decryptBuf(buf, password) {
   const data = new Uint8Array(buf);
-  if (data.length < 50) throw new Error('Файл слишком короткий или повреждён');
-  if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||      data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
+  if (data.length < 6) throw new Error('Файл слишком короткий или повреждён');
+  if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||
+      data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
     throw new Error('Неверный формат файла (.bloody)');
   const version = (data[4] << 8) | data[5];
-  if (version !== 0x0002) throw new Error('Неподдерживаемая версия файла (обновите BloodyKey)');
-  const header = data.slice(0, 6);
-  const salt = data.slice(6, 22);
-  const iv   = data.slice(22, 34);
-  const ct   = data.slice(34);
+  let salt, iv, ct, header, offset;
+  
+  if (version === 0x0003) {
+    // Версия 3: соль 32 байта
+    if (data.length < 50) throw new Error('Файл слишком короткий (v3)');
+    offset = 6;
+    salt = data.slice(offset, offset + 32);
+    iv   = data.slice(offset + 32, offset + 44);
+    ct   = data.slice(offset + 44);
+    header = data.slice(0, 6);
+  } else if (version === 0x0002) {
+    // Версия 2: соль 16 байт (обратная совместимость)
+    if (data.length < 34) throw new Error('Файл слишком короткий (v2)');
+    offset = 6;
+    salt = data.slice(offset, offset + 16);
+    iv   = data.slice(offset + 16, offset + 28);
+    ct   = data.slice(offset + 28);
+    header = data.slice(0, 6);
+  } else {
+    throw new Error('Неподдерживаемая версия файла (обновите BloodyKey)');
+  }
+  
   if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
   const key = await deriveKey(password, salt);
   try {
@@ -803,6 +842,7 @@ async function decryptBuf(buf, password) {
   }
 }
 
+// Текстовые функции (используют encryptBuf/decryptBuf)
 async function encryptText(plain, pw) {
   const buf = await encryptBuf(ENC.encode(plain), pw);
   const u8 = new Uint8Array(buf);
@@ -831,7 +871,8 @@ function downloadBlob(buf, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = name; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);}
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 // ========== UI ==========
 let mode = 'enc', dtype = 'text', fileEnc = null, fileDec = null, busy = false;
@@ -880,7 +921,8 @@ function setType(t) {
   show('areaFileDec', t==='file' && mode==='dec');
 }
 
-function pickFile(e, side) {  const f = e.target.files[0];
+function pickFile(e, side) {
+  const f = e.target.files[0];
   if (f) setFile(f, side);
 }
 function setFile(f, side) {
@@ -978,7 +1020,8 @@ function togglePw() {
   const isPw = inp.type === 'password';
   inp.type = isPw ? 'text' : 'password';
   $('pwToggle').textContent = isPw ? '🔒' : '👁';
-}function openHelp() { $('helpModal').classList.add('show'); }
+}
+function openHelp() { $('helpModal').classList.add('show'); }
 function closeHelp() { $('helpModal').classList.remove('show'); }
 
 async function doAction() {
@@ -1027,7 +1070,8 @@ async function doEncrypt(pw) {
 async function doDecrypt(pw) {
   if (dtype==='text') {
     const txt = $('decIn').value.trim();
-    if (!txt) throw new Error('Вставьте зашифрованный текст!');    setProgress(30);
+    if (!txt) throw new Error('Вставьте зашифрованный текст!');
+    setProgress(30);
     const result = await decryptText(txt, pw);
     setProgress(100);
     showResult(result, 'Расшифрованный текст');
@@ -1054,7 +1098,7 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e') { e.preventDefault(); doAction(); }
 });
 
-// 🔧 Регистрация Service Worker для офлайн-работы
+// Регистрация Service Worker для офлайн-работы
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -1068,4 +1112,4 @@ setType('text');
 onKeyInput();
 </script>
 </body>
-</html>
+  </html>
