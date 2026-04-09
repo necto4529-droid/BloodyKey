@@ -313,10 +313,11 @@ graph LR
 
 ```
 • G$7%hd]j6#2&8Rz6Y+@
-• Kot#Vaska_Lubit3Riby!%
-• My_Dog#Barney_Eats5Bones!@
+• X8$kL9#mP2@qR5%tY7&z
+• C4%vB8^nM3@kL9#pQ2&
+• Z9&xR4#tG6%yH7@wE3$
 ```
-
+> **В целях безопасности, не используйте выше приведённые пароли!**
 ---
 
 ## ⚠️ Ограничения и рекомендации
