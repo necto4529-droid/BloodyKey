@@ -757,7 +757,7 @@ async function doAction() {
   if (mode==='enc' && pw.length<12) return toast('Пароль: минимум 12 символов!','err');
 
   setBusy(true);
-  setStatus('Вычисление Argon2id (256MB, 4 iter)…','info',true);
+  setStatus('Вычисление Argon2id (128MB, 4 iter)…','info',true);
   await new Promise(r=>requestAnimationFrame(r));
   await new Promise(r=>setTimeout(r,10));
 
