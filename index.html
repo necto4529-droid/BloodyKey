@@ -320,7 +320,7 @@ body::after {
            ondragover="dragOver(event,'fpEnc')" ondragleave="dragLeave('fpEnc')" ondrop="dropFile(event,'enc')">
         <div class="file-pick-icon">📂</div>
         <div class="file-pick-title">Нажмите или перетащите файл</div>
-        <div class="file-pick-sub">Любой формат — изображение, документ, архив</div>
+        <div class="file-pick-sub">Любой формат — изображение, документ, архив (≤ 600 МБ)</div>
       </div>
       <input type="file" id="fInEnc" style="display:none" onchange="pickFile(event,'enc')">
       <div class="file-info-row" id="fInfoEnc">
@@ -346,7 +346,7 @@ body::after {
            ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
         <div class="file-pick-icon">🩸</div>
         <div class="file-pick-title">Выбрать .bloody файл</div>
-        <div class="file-pick-sub">Файлы с расширением .bloody (версия 2 и 3)</div>
+        <div class="file-pick-sub">Файлы с расширением .bloody (версия 2 и 3, ≤ 600 МБ)</div>
       </div>
       <input type="file" id="fInDec" style="display:none" accept=".bloody" onchange="pickFile(event,'dec')">
       <div class="file-info-row" id="fInfoDec">
@@ -413,7 +413,7 @@ body::after {
       <ul class="modal-list">
         <li>Выберите файл → после шифрования скачается <strong>.bloody</strong> (v3).</li>
         <li>Оригинальное имя файла зашифровано внутри — восстанавливается автоматически.</li>
-        <li>Поддерживаются файлы v2 и v3.</li>
+        <li>Поддерживаются файлы v2 и v3. Максимальный размер: 600 МБ.</li>
       </ul>
     </div>
     <div class="modal-section">
@@ -430,6 +430,9 @@ body::after {
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// ========== КОНФИГУРАЦИЯ ==========
+const MAX_FILE_SIZE = 600 * 1024 * 1024; // 600 МБ в байтах
+
 // ========== CRYPTO CORE (Argon2id + AAD) ==========
 const ENC = new TextEncoder();
 const DEC = new TextDecoder();
@@ -528,6 +531,8 @@ async function decryptBuf(buf, password) {
 
   const plain   = new Uint8Array(plainBuf);
   const metaLen = new Uint32Array(plain.buffer, 0, 1)[0];
+  // Проверка выхода за границы буфера (улучшение безопасности)
+  if (metaLen > plain.length - 4) throw new Error('Повреждённые метаданные');
   const metaStr = DEC.decode(plain.slice(4, 4 + metaLen));
   let originalName = '';
   try {
@@ -634,10 +639,26 @@ function setType(t) {
   show('areaFileDec', t==='file' && mode==='dec');
 }
 
+// Проверка размера файла перед принятием
+function validateFileSize(file) {
+  if (file.size > MAX_FILE_SIZE) {
+    toast(`Файл слишком большой!`, 'err');
+    return false;
+  }
+  return true;
+}
+
 function pickFile(e, side) {
   const f = e.target.files[0];
-  if (f) setFile(f, side);
+  if (f && validateFileSize(f)) {
+    setFile(f, side);
+  } else {
+    // Очищаем input, чтобы пользователь мог повторно выбрать тот же файл после ошибки
+    e.target.value = '';
+    clearFile(side);
+  }
 }
+
 function setFile(f, side) {
   if (side==='enc') fileEnc=f; else fileDec=f;
   const s = side==='enc'?'Enc':'Dec';
@@ -645,23 +666,38 @@ function setFile(f, side) {
   $(`fSize${s}`).textContent = formatSize(f.size);
   $(`fInfo${s}`).classList.add('show');
 }
+
 function clearFile(side) {
   const s = side==='enc'?'Enc':'Dec';
-  if (side==='enc') { fileEnc=null; $('fInEnc').value=''; }
-  else { fileDec=null; $('fInDec').value=''; }
+  if (side==='enc') { 
+    fileEnc=null; 
+    $('fInEnc').value=''; 
+  } else { 
+    fileDec=null; 
+    $('fInDec').value=''; 
+  }
   $(`fInfo${s}`).classList.remove('show');
 }
+
 function dragOver(e,id)  { e.preventDefault(); $(id).classList.add('drag'); }
 function dragLeave(id)   { $(id).classList.remove('drag'); }
+
 function dropFile(e,side) {
   e.preventDefault();
   $(side==='enc'?'fpEnc':'fpDec').classList.remove('drag');
   const f = e.dataTransfer?.files?.[0];
   if (f) {
-    if (side==='dec' && !f.name.endsWith('.bloody')) { toast('Ожидается файл .bloody!','err'); return; }
+    if (side==='dec' && !f.name.endsWith('.bloody')) { 
+      toast('Ожидается файл .bloody!','err'); 
+      return; 
+    }
+    if (!validateFileSize(f)) {
+      return;
+    }
     setFile(f,side);
   }
 }
+
 function setProgress(p) {
   const wrap=$('prog'), fill=$('progFill');
   if (p<=0) { wrap.classList.remove('show'); fill.style.width='0%'; return; }
@@ -787,6 +823,10 @@ async function doEncrypt(pw) {
     toast('Зашифровано ✓');
   } else {
     if (!fileEnc) throw new Error('Выберите файл!');
+    // Дополнительная проверка (уже была при выборе, но для надёжности)
+    if (fileEnc.size > MAX_FILE_SIZE) {
+      throw new Error('Файл превышает лимит 600 МБ');
+    }
     setProgress(15);
     const buf=await readFile(fileEnc);
     setProgress(40);
@@ -813,6 +853,9 @@ async function doDecrypt(pw) {
     toast('Расшифровано ✓');
   } else {
     if (!fileDec) throw new Error('Выберите .bloody файл!');
+    if (fileDec.size > MAX_FILE_SIZE) {
+      throw new Error('Файл превышает лимит 600 МБ');
+    }
     setProgress(15);
     const buf=await readFile(fileDec);
     setProgress(40);
@@ -856,4 +899,4 @@ setType('text');
 onKeyInput();
 </script>
 </body>
-    </html>
+</html>
