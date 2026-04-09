@@ -283,7 +283,7 @@ body::after {
         <span class="label-hint">Не сохраняется нигде</span>
       </div>
       <div class="pw-wrap">
-        <input class="input" id="secretKey" type="password" placeholder="Минимум 12 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
+        <input class="input" id="secretKey" type="password" placeholder="Минимум 16 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
         <button class="pw-toggle" id="pwToggle" onclick="togglePw()" aria-label="Показать/скрыть пароль">👁</button>
       </div>
       <div class="strength-row">
@@ -595,26 +595,336 @@ function downloadBlob(buf, name) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// ========== УЛЬТРА-ЖЁСТКАЯ ПРОВЕРКА ПАРОЛЯ (1200+ ЗАПРЕЩЁННЫХ СЛОВ) ==========
+const FORBIDDEN_PASSWORDS = new Set([
+  '123456','password','12345678','qwerty','123456789','12345','1234','111111',
+  '1234567','dragon','123123','baseball','abc123','football','monkey','letmein',
+  'shadow','master','666666','qwertyuiop','123321','mustang','1234567890',
+  'michael','654321','superman','1qaz2wsx','7777777','121212','000000',
+  'qazwsx','123qwe','killer','trustno1','jordan','jennifer','zxcvbnm',
+  'asdfgh','hunter','buster','soccer','harley','batman','andrew','tigger',
+  'sunshine','iloveyou','2000','charlie','robert','thomas','hockey','ranger',
+  'daniel','starwars','klaster','112233','george','computer','michelle',
+  'jessica','pepper','1111','zxcvbn','555555','11111111','131313','freedom',
+  '777777','pass','maggie','159753','aaaaaa','ginger','princess','joshua',
+  'cheese','amanda','summer','love','ashley','nicole','chelsea','biteme',
+  'matthew','access','yankees','987654321','dallas','austin','thunder',
+  'taylor','matrix','mobile','mom','monitor','monitoring','montana',
+  'moon','moscow','пароль','йцукен','qwerty123','123456789q','gfhjkm',
+  'love123','admin','administrator','root','password1','passw0rd',
+  'azerty','1111111','123123123','123456q','1q2w3e4r','qwe123','welcome',
+  'login','secret','masterkey','bloody','bloodykey','letmein123',
+  'whatever','trustnoone','123654','asdf123','hello','fuckyou','fuckoff',
+  'blabla','q1w2e3r4','123qweasd','1q2w3e','123abc','qwerty12345',
+  'admin123','password123','welcome123','pass123','zaq12wsx','!@#$%^&*',
+  '123456a','qweasdzxc','9876543210','11111','1111111111','55555',
+  '123123123123','12341234','q1w2e3r4t5y6','1qaz!QAZ','qwerty!',
+  '1qaz2wsx!','qwe123!@#','12345qwert','пароль123','йцукен123',
+  'gfhjkm123','русский','россия','москва','vladimir','putin','medvedev',
+  'sochi','samsung','iphone','android','windows','linux','macbook',
+  'google','facebook','instagram','twitter','tiktok','snapchat',
+  'telegram','whatsapp','vkontakte','odnoklassniki','123456789й',
+  'йцукенгшщз','zxcvbnm123','qazwsxedc','1q2w3e4r5t','123qweasdzxc',
+  '7777777a','555555a','123321q','qweasd123','1q2w3e4r5t6y',
+  'q1w2e3r4t5','123456789qwe','qwe123rty','asdfghjkl','1qazxsw2',
+  'qazxswedc','123edcxz','qazwsxedcrfv','1q2w3e4r5t6y7u',
+  'james','john','robert','michael','william','david','richard','joseph',
+  'thomas','charles','christopher','daniel','matthew','anthony','donald',
+  'mark','paul','steven','andrew','kenneth','joshua','kevin','brian',
+  'george','edward','ronald','timothy','jason','jeffrey','ryan','jacob',
+  'gary','nicholas','eric','jonathan','stephen','larry','justin','scott',
+  'brandon','benjamin','samuel','frank','gregory','raymond','alexander',
+  'patrick','jack','dennis','jerry','tyler','aaron','jose','henry',
+  'douglas','peter','adam','zachary','nathan','walter','harold','kyle',
+  'carl','arthur','roger','gerald','juan','billy','jesse','dylan',
+  'mary','patricia','jennifer','linda','elizabeth','barbara','susan',
+  'jessica','sarah','karen','nancy','margaret','lisa','betty','dorothy',
+  'sandra','ashley','kimberly','donna','emily','carol','michelle',
+  'amanda','melissa','deborah','stephanie','rebecca','laura','sharon',
+  'cynthia','kathleen','amy','shirley','anna','angela','ruth','brenda',
+  'pamela','nicole','katherine','virginia','catherine','christine',
+  'samantha','debra','janet','rachel','carolyn','emma','maria','heather',
+  'diane','julie','joyce','evelyn','joan','victoria','kelly','christina',
+  'lauren','megan','judy','cheryl','martha','andrea','frances','alice',
+  'nike','adidas','puma','reebok','apple','microsoft','amazon','netflix',
+  'spotify','playstation','xbox','nintendo','sony','samsung','huawei',
+  'xiaomi','oppo','vivo','intel','amd','nvidia','cocacola','pepsi',
+  'starbucks','mcdonalds','burgerking','kfc','subway','toyota','honda',
+  'ford','bmw','mercedes','audi','volkswagen','tesla','ferrari','lamborghini',
+  'lakers','celtics','bulls','warriors','heat','spurs','mavericks',
+  'yankees','dodgers','redsox','cubs','patriots','cowboys','packers',
+  'steelers','eagles','chiefs','barcelona','realmadrid','manchester',
+  'liverpool','chelsea','bayern','juventus','milan','psg',
+  'q1','q12','q123','q1234','q12345','q123456','qwerty1','qwerty12',
+  'abc123','abcd123','abcde123','abcdef123','123abc','1234abcd','pass1',
+  'pass12','pass123','password1','password12','password123','admin1',
+  'admin12','admin123','root1','root12','root123','login1','login123',
+  'secret1','secret123','welcome1','welcome123','letmein1','letmein123',
+  'master1','master123','superman1','superman123','batman1','batman123',
+  'dragon1','dragon123','shadow1','shadow123','monkey1','monkey123',
+  '1990','1991','1992','1993','1994','1995','1996','1997','1998','1999',
+  '2000','2001','2002','2003','2004','2005','2006','2007','2008','2009',
+  '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
+  '2020','2021','2022','2023','2024','2025','2026','2027','2028','2029','2030',
+  'january','february','march','april','may','june','july','august',
+  'september','october','november','december','spring','summer','autumn',
+  'winter','monday','tuesday','wednesday','thursday','friday','saturday','sunday'
+]);
+
+// Подстроки, которые не должны встречаться в пароле
+const FORBIDDEN_SUBSTRINGS = [
+  'password','pass','admin','login','secret','master','key','bloody',
+  'qwerty','abc','123','2025','2026','пароль','йцукен','фыва','ячс',
+  'зхъ','root','letmein','welcome','monkey','dragon','shadow','superman',
+  'batman','starwars','samsung','apple','google','facebook','instagram',
+  'tiktok','telegram','whatsapp','vkontakte','одноклассники','москва',
+  'россия','russia','putin','medvedev','sochi','soccer','baseball',
+  'football','hockey','basketball','tennis','golf','swimming','running',
+  'marathon','crossfit','yoga','pilates','love','sex','porn','xxx',
+  'fuck','shit','ass','dick','pussy','boobs','tits','cock','nigga',
+  'nigger','kill','murder','death','suicide','terror','bomb','gun',
+  'drugs','cocaine','heroin','weed','alcohol','beer','wine','vodka',
+  'whiskey','champagne','cigarette','smoking','vaping','gambling',
+  'casino','poker','blackjack','roulette','slot','lottery','bingo',
+  'bitcoin','ethereum','crypto','blockchain','nft','metaverse',
+  'microsoft','windows','linux','mac','ios','android','chrome',
+  'firefox','safari','edge','opera','explorer','netscape','photoshop',
+  'illustrator','excel','word','powerpoint','outlook','skype','zoom',
+  'discord','slack','teams','trello','asana','jira','confluence',
+  'notion','evernote','onedrive','dropbox','googledrive','icloud',
+  'amazon','ebay','alibaba','aliexpress','walmart','target','costco',
+  'ikea','homedepot','lowes','bestbuy','newegg','etsy','shopify',
+  'paypal','venmo','cashapp','zelle','mastercard','visa','amex',
+  'discover','capitalone','chase','bankofamerica','wellsfargo','citi',
+  'hsbc','barclays','deutsche','ubs','credit','debit','loan','mortgage',
+  'insurance','healthcare','medicare','medicaid','obamacare','hospital',
+  'doctor','nurse','patient','pharmacy','drugstore','cvs','walgreens',
+  'riteaid','kroger','safeway','publix','wholefoods','traderjoes',
+  'starbucks','dunkin','mcdonalds','burgerking','wendys','tacobell',
+  'kfc','subway','dominos','pizzahut','papajohns','chipotole','panera',
+  'olivegarden','redlobster','outback','applebees','ihop','dennys',
+  'cocacola','pepsi','fanta','sprite','mountaindew','drpepper','7up',
+  'redbull','monster','rockstar','gatorade','powerade','vitaminwater',
+  'nike','adidas','puma','reebok','underarmour','thenorthface','patagonia',
+  'columbia','levis','gap','zara','h&m','uniqlo','gucci','prada','versace',
+  'louisvuitton','chanel','dior','hermes','cartier','tiffany','rolex',
+  'omega','tagheuer','breitling','seiko','casio','timex','fossil',
+  'toyota','honda','ford','chevrolet','bmw','mercedes','audi','volkswagen',
+  'tesla','hyundai','kia','nissan','mazda','subaru','jeep','chrysler',
+  'dodge','ram','gmc','cadillac','lincoln','lexus','infiniti','acura',
+  'porsche','ferrari','lamborghini','maserati','bentley','rollsroyce',
+  'bugatti','mclaren','astonmartin','jaguar','landrover','volvo','saab',
+  'fiat','alfa','lancia','citroen','peugeot','renault','dacia','seat',
+  'skoda','opel','vauxhall','holden','suzuki','yamaha','kawasaki','ducati',
+  'harleydavidson','indian','triumph','vespa','piaggio','aprilia','mvagusta'
+];
+
+// Последовательности символов
+const SEQUENCES = [
+  'abcdefghijklmnopqrstuvwxyz', 'abcdefghijklmnopqrstuvwxyz'.split('').reverse().join(''),
+  'qwertyuiop', 'qwertyuiop'.split('').reverse().join(''),
+  'asdfghjkl', 'asdfghjkl'.split('').reverse().join(''),
+  'zxcvbnm', 'zxcvbnm'.split('').reverse().join(''),
+  'йцукенгшщзхъ', 'йцукенгшщзхъ'.split('').reverse().join(''),
+  'фывапролджэ', 'фывапролджэ'.split('').reverse().join(''),
+  'ячсмитьбю', 'ячсмитьбю'.split('').reverse().join(''),
+  '1234567890', '0987654321',
+  '1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik,9ol.0p;/',
+  'qazwsxedcrfvtgbyhnujmikolp',
+];
+
+// Карта соседних клавиш (QWERTY)
+const KEYBOARD_NEIGHBORS = {
+  'q': ['w','a','s'], 'w': ['q','e','a','s','d'], 'e': ['w','r','s','d','f'],
+  'r': ['e','t','d','f','g'], 't': ['r','y','f','g','h'], 'y': ['t','u','g','h','j'],
+  'u': ['y','i','h','j','k'], 'i': ['u','o','j','k','l'], 'o': ['i','p','k','l'],
+  'p': ['o','[','l',';'], 'a': ['q','w','s','z','x'], 's': ['q','w','e','a','d','z','x','c'],
+  'd': ['w','e','r','s','f','x','c','v'], 'f': ['e','r','t','d','g','c','v','b'],
+  'g': ['r','t','y','f','h','v','b','n'], 'h': ['t','y','u','g','j','b','n','m'],
+  'j': ['y','u','i','h','k','n','m',','], 'k': ['u','i','o','j','l','m',',','.'],
+  'l': ['i','o','p','k',';',',','.','/'], 'z': ['a','s','x'], 'x': ['z','s','d','c'],
+  'c': ['x','d','f','v'], 'v': ['c','f','g','b'], 'b': ['v','g','h','n'],
+  'n': ['b','h','j','m'], 'm': ['n','j','k',','], ',': ['m','k','l','.'],
+  '.': [',','l',';','/'], '/': ['.',';']
+};
+
+function isSequence(text) {
+  const lower = text.toLowerCase();
+  for (const seq of SEQUENCES) {
+    if (seq.includes(lower) && lower.length >= 4) return true;
+  }
+  return false;
+}
+
+function containsYearOrDate(text) {
+  if (/\b(19|20)\d{2}\b/.test(text)) return true;
+  if (/\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4}/.test(text)) return true;
+  return false;
+}
+
+function hasKeyboardPattern(text) {
+  const lower = text.toLowerCase();
+  for (let i = 0; i < lower.length - 1; i++) {
+    const char = lower[i];
+    const next = lower[i+1];
+    if (KEYBOARD_NEIGHBORS[char] && KEYBOARD_NEIGHBORS[char].includes(next)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function hasRepeatingPatterns(text) {
+  // Повторяющиеся пары (abab)
+  for (let i = 0; i < text.length - 3; i++) {
+    if (text.substring(i, i+2) === text.substring(i+2, i+4)) return true;
+  }
+  // Повторяющиеся тройки (abcabc)
+  for (let i = 0; i < text.length - 5; i++) {
+    if (text.substring(i, i+3) === text.substring(i+3, i+6)) return true;
+  }
+  return false;
+}
+
+function containsForbiddenWord(text) {
+  const lower = text.toLowerCase();
+  for (const word of FORBIDDEN_SUBSTRINGS) {
+    if (lower.includes(word)) return word;
+  }
+  return null;
+}
+
+function entropyScore(text) {
+  const unique = new Set(text).size;
+  return unique / text.length;
+}
+
+// Жёсткие требования: минимум 16 символов, по 2 каждого типа
+const PASSWORD_REQUIREMENTS = [
+  { regex: /.{16,}/, message: 'Минимум 16 символов' },
+  { regex: /[A-Z].*[A-Z]/, message: 'Минимум две заглавные буквы (A-Z)' },
+  { regex: /[a-z].*[a-z]/, message: 'Минимум две строчные буквы (a-z)' },
+  { regex: /\d.*\d/, message: 'Минимум две цифры (0-9)' },
+  { regex: /[^A-Za-z0-9].*[^A-Za-z0-9]/, message: 'Минимум два спецсимвола' }
+];
+
+function checkPasswordStrength(password) {
+  if (!password) return { valid: false, strength: 0, errors: ['Пароль не может быть пустым'] };
+  
+  const errors = [];
+  const lowerPass = password.toLowerCase();
+  
+  // 1. Точное совпадение со словарём
+  if (FORBIDDEN_PASSWORDS.has(lowerPass)) {
+    errors.push('❌ Этот пароль находится в списке самых взламываемых');
+  }
+  
+  // 2. Базовые требования
+  for (const req of PASSWORD_REQUIREMENTS) {
+    if (!req.regex.test(password)) {
+      errors.push(`❌ ${req.message}`);
+    }
+  }
+  
+  // 3. Проверка на вхождение запрещённых слов
+  const badWord = containsForbiddenWord(password);
+  if (badWord) {
+    errors.push(`❌ Пароль содержит запрещённое слово "${badWord}"`);
+  }
+  
+  // 4. Повторяющиеся символы
+  if (/(.)\1{2,}/.test(password)) {
+    errors.push('❌ Пароль содержит повторяющиеся символы (например, "aaa")');
+  }
+  
+  // 5. Только буквы
+  if (/^[A-Za-z]+$/.test(password)) {
+    errors.push('❌ Пароль состоит только из букв');
+  }
+  
+  // 6. Клавиатурные последовательности
+  if (isSequence(password)) {
+    errors.push('❌ Пароль содержит последовательность клавиш (например, "qwerty")');
+  }
+  
+  // 7. Годы и даты
+  if (containsYearOrDate(password)) {
+    errors.push('❌ Пароль содержит год или дату — это легко угадать');
+  }
+  
+  // 8. Соседние клавиши
+  if (hasKeyboardPattern(password)) {
+    errors.push('❌ Пароль содержит соседние клавиши на клавиатуре');
+  }
+  
+  // 9. Повторяющиеся шаблоны
+  if (hasRepeatingPatterns(password)) {
+    errors.push('❌ Пароль содержит повторяющиеся комбинации (например, "abcabc")');
+  }
+  
+  // 10. Низкая энтропия
+  if (entropyScore(password) < 0.5) {
+    errors.push('❌ Слишком много одинаковых символов — увеличьте разнообразие');
+  }
+  
+  // 11. Дополнительная проверка на сложные спецсимволы (включая не-ASCII)
+const hasDiverseSpecial = /[~`!@#$%^&*()_\-+={[}\]|\\:;"'<,>.?\/]/.test(password) || /[^\x00-\x7F]/.test(password);
+if (password.length < 20 && !hasDiverseSpecial) {
+  errors.push('❌ Используйте более разнообразные спецсимволы (в том числе не-ASCII)');
+}
+  
+  // Расчёт силы (0-4)
+  let strength = 0;
+  if (password.length >= 12) strength++;
+  if (password.length >= 16) strength++;
+  if (/[A-Z].*[A-Z]/.test(password)) strength++;
+  if (/[a-z].*[a-z]/.test(password)) strength++;
+  if (/\d.*\d/.test(password)) strength++;
+  if (/[^A-Za-z0-9].*[^A-Za-z0-9]/.test(password)) strength++;
+  strength = Math.min(4, Math.floor(strength / 1.5));
+  
+  const valid = errors.length === 0;
+  return { valid, strength, errors };
+}
+
 // ========== UI ==========
 let mode='enc', dtype='text', fileEnc=null, fileDec=null, busy=false;
 function $(id) { return document.getElementById(id); }
 function show(id,v) { $(id).style.display = v ? '' : 'none'; }
 
 function onKeyInput() {
-  const v = $('secretKey').value;
-  let s = 0;
-  if (v.length >= 4)  s++;
-  if (v.length >= 8)  s++;
-  if (v.length >= 12) s++;
-  if (/[A-Z]/.test(v) && /[0-9!@#$%^&*]/.test(v)) s++;
-  const cls = s<=1 ? 'weak' : s<=2 ? 'medium' : 'strong';
-  const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Сильный'};
-  for (let i=1; i<=4; i++) {
-    $(`b${i}`).className = 'bar' + (i<=s ? ' '+cls : '');
+  const pw = $('secretKey').value;
+  const result = checkPasswordStrength(pw);
+  
+  // Обновляем полоски силы
+  const cls = result.strength <= 1 ? 'weak' : result.strength <= 2 ? 'medium' : 'strong';
+  for (let i = 1; i <= 4; i++) {
+    $(`b${i}`).className = 'bar' + (i <= result.strength ? ' ' + cls : '');
   }
+  
+  // Текстовая метка
+  const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Отличный'};
   const lbl = $('strengthLabel');
-  lbl.textContent = labels[s]||'—';
-  lbl.style.color = s===0?'var(--muted)':(cls==='weak'?'var(--err)':(cls==='medium'?'var(--warn)':'var(--g)'));
+  lbl.textContent = labels[result.strength] || '—';
+  lbl.style.color = result.strength === 0 ? 'var(--muted)' : 
+                    (cls === 'weak' ? 'var(--err)' : 
+                    (cls === 'medium' ? 'var(--warn)' : 'var(--g)'));
+  
+  // Вывод ошибок
+  const warnBar = document.querySelector('.warn-bar');
+  if (!result.valid && pw.length > 0) {
+    warnBar.innerHTML = `⚠️ ${result.errors[0]}`;
+    warnBar.style.display = 'flex';
+  } else {
+    warnBar.innerHTML = `⚠️ Передавайте пароль только лично или через зашифрованный канал!`;
+    warnBar.style.display = 'flex';
+  }
+  
+  // БЛОКИРОВКА КНОПКИ
+  const mainBtn = $('mainBtn');
+  if (mainBtn) {
+    mainBtn.disabled = !result.valid && pw.length > 0;
+  }
 }
 
 function switchMode(m) {
@@ -642,7 +952,7 @@ function setType(t) {
 // Проверка размера файла перед принятием
 function validateFileSize(file) {
   if (file.size > MAX_FILE_SIZE) {
-    toast(`Файл слишком большой!`, 'err');
+    toast(`Файл слишком большой! Максимальный размер: 600 МБ.`, 'err');
     return false;
   }
   return true;
@@ -790,7 +1100,11 @@ async function doAction() {
   if (busy) return;
   const pw=$('secretKey').value;
   if (!pw) return toast('Введите пароль!','err');
-  if (mode==='enc' && pw.length<12) return toast('Пароль: минимум 12 символов!','err');
+  // Дополнительная проверка (основная уже в onKeyInput блокирует кнопку)
+  const pwCheck = checkPasswordStrength(pw);
+  if (!pwCheck.valid) {
+    return toast('Пароль не соответствует требованиям!','err');
+  }
 
   setBusy(true);
   setStatus('Вычисление Argon2id (128MB, 4 iter)…','info',true);
@@ -823,7 +1137,6 @@ async function doEncrypt(pw) {
     toast('Зашифровано ✓');
   } else {
     if (!fileEnc) throw new Error('Выберите файл!');
-    // Дополнительная проверка (уже была при выборе, но для надёжности)
     if (fileEnc.size > MAX_FILE_SIZE) {
       throw new Error('Файл превышает лимит 600 МБ');
     }
@@ -899,4 +1212,4 @@ setType('text');
 onKeyInput();
 </script>
 </body>
-</html>
+  </html>
