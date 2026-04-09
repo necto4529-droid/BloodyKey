@@ -3,30 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>BloodyKey | AES-256-GCM + Argon2id (v3)</title>
-
-<!-- PWA: Manifest -->
+<title>BloodyKey | AES-256-GCM + Argon2id</title>
 <link rel="manifest" href="manifest.json">
-
-<!-- Иконки для разных устройств -->
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
 <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
-
-<!-- Мета-теги для iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BloodyKey">
-
-<!-- Цвет темы для мобильных браузеров -->
 <meta name="theme-color" content="#080814">
 <meta name="msapplication-TileColor" content="#080814">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="argon2-bundled.min.js"></script>
 <style>
-/* (все стили остаются без изменений — они такие же, как в предыдущей версии) */
 :root {
   --g: #00ff88;
   --b: #00d9ff;
@@ -40,9 +30,7 @@
   --radius: 20px;
   --r-sm: 12px;
 }
-
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   font-family: 'Space Grotesk', sans-serif;
   min-height: 100vh;
@@ -54,7 +42,6 @@ body {
   position: relative;
   overflow-x: hidden;
 }
-
 body::before {
   content: '';
   position: fixed;
@@ -66,563 +53,210 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
-
 body::after {
   content: '';
   position: fixed;
-  top: -40%;
-  left: -20%;
-  width: 80%;
-  height: 80%;
+  top: -40%; left: -20%;
+  width: 80%; height: 80%;
   background: radial-gradient(ellipse, rgba(0,255,136,.06) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
   animation: pulse-bg 8s ease-in-out infinite alternate;
 }
-
 @keyframes pulse-bg {
-  from { transform: scale(1) translate(0,0); opacity: 0.6; }
-  to   { transform: scale(1.15) translate(5%, 8%); opacity: 1; }
+  from { transform: scale(1) translate(0,0); opacity:.6; }
+  to   { transform: scale(1.15) translate(5%,8%); opacity:1; }
 }
-
-.wrap {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 580px;
-}
+.wrap { position:relative; z-index:1; width:100%; max-width:580px; }
 
 /* HEADER */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding: 0 4px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding:0 4px; }
+.logo { display:flex; align-items:center; gap:12px; }
 .logo-icon {
-  width: 38px;
-  height: 38px;
-  background: linear-gradient(135deg, var(--g), var(--b));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
+  width:38px; height:38px;
+  background: linear-gradient(135deg,var(--g),var(--b));
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
   box-shadow: 0 0 20px rgba(0,255,136,.35);
-  flex-shrink: 0;
+  flex-shrink:0;
 }
-
-.logo-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--g);
-  letter-spacing: -0.5px;
-}
-
+.logo-text { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--g); letter-spacing:-.5px; }
 .logo-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  background: rgba(0,255,136,.12);
-  border: 1px solid var(--border);
-  color: var(--g);
-  padding: 3px 8px;
-  border-radius: 20px;
-  letter-spacing: 1px;
-  margin-left: 8px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+  background:rgba(0,255,136,.12); border:1px solid var(--border); color:var(--g);
+  padding:3px 8px; border-radius:20px; letter-spacing:1px; margin-left:8px;
 }
-
 .help-btn {
-  width: 38px; height: 38px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--g);
-  border-radius: 50%;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .2s ease;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
-  margin-right: 2px;
+  width:38px; height:38px;
+  background:var(--panel); border:1px solid var(--border); color:var(--g);
+  border-radius:50%; font-size:15px; font-weight:700; cursor:pointer;
+  transition:all .2s ease;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; margin-right:2px;
 }
-.help-btn:hover { background: rgba(0,255,136,.15); border-color: var(--g); transform: scale(1.05); }
+.help-btn:hover { background:rgba(0,255,136,.15); border-color:var(--g); transform:scale(1.05); }
 
 /* CARDS */
 .card {
-  background: var(--panel);
-  backdrop-filter: blur(24px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 14px;
-  transition: border-color .3s ease, box-shadow .3s ease;
+  background:var(--panel); backdrop-filter:blur(24px);
+  border:1px solid var(--border); border-radius:var(--radius);
+  padding:24px; margin-bottom:14px;
+  transition:border-color .3s ease, box-shadow .3s ease;
 }
-.card:focus-within {
-  border-color: rgba(0,255,136,.5);
-  box-shadow: 0 4px 20px rgba(0,255,136,.1);
-}
+.card:focus-within { border-color:rgba(0,255,136,.5); box-shadow:0 4px 20px rgba(0,255,136,.1); }
 
 /* TABS */
-.tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
+.tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
 .tab {
-  padding: 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid transparent;
-  background: rgba(0,0,0,.3);
-  color: var(--muted);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .25s ease;
-  letter-spacing: .3px;
+  padding:14px; border-radius:var(--r-sm); border:1px solid transparent;
+  background:rgba(0,0,0,.3); color:var(--muted);
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; transition:all .25s ease; letter-spacing:.3px;
 }
-.tab:hover { color: var(--text); background: rgba(255,255,255,.06); }
-.tab.active-enc {
-  background: rgba(0,255,136,.12);
-  border-color: rgba(0,255,136,.5);
-  color: var(--g);
-  box-shadow: 0 0 12px rgba(0,255,136,.4), inset 0 1px 1px rgba(255,255,255,.1);
-}
-.tab.active-dec {
-  background: rgba(0,217,255,.12);
-  border-color: rgba(0,217,255,.5);
-  color: var(--b);
-  box-shadow: 0 0 12px rgba(0,217,255,.4), inset 0 1px 1px rgba(255,255,255,.1);
-}
+.tab:hover { color:var(--text); background:rgba(255,255,255,.06); }
+.tab.active-enc { background:rgba(0,255,136,.12); border-color:rgba(0,255,136,.5); color:var(--g); box-shadow:0 0 12px rgba(0,255,136,.4),inset 0 1px 1px rgba(255,255,255,.1); }
+.tab.active-dec { background:rgba(0,217,255,.12); border-color:rgba(0,217,255,.5); color:var(--b); box-shadow:0 0 12px rgba(0,217,255,.4),inset 0 1px 1px rgba(255,255,255,.1); }
 
 /* SUB-TABS */
-.sub-tabs {
-  display: flex;
-  background: rgba(0,0,0,.35);
-  border-radius: var(--r-sm);
-  padding: 4px;
-  margin-bottom: 20px;
-}
-.sub-tab {
-  flex: 1;
-  padding: 9px;
-  border-radius: 9px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.sub-tab.active {
-  background: rgba(0,255,136,.15);
-  color: var(--g);
-  box-shadow: 0 0 10px rgba(0,255,136,.2);
-}
+.sub-tabs { display:flex; background:rgba(0,0,0,.35); border-radius:var(--r-sm); padding:4px; margin-bottom:14px; }
+.sub-tab { flex:1; padding:9px; border-radius:9px; border:none; background:transparent; color:var(--muted); font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s ease; }
+.sub-tab.active { background:rgba(0,255,136,.15); color:var(--g); box-shadow:0 0 10px rgba(0,255,136,.2); }
 
 /* FIELDS */
-.field { margin-bottom: 18px; }
-.label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 8px;
-}
-.label-hint { font-size: 11px; color: rgba(255,255,255,.25); text-transform: none; letter-spacing: 0; }
-
+.field { margin-bottom:18px; }
+.label { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; }
+.label-hint { font-size:11px; color:rgba(255,255,255,.25); text-transform:none; letter-spacing:0; }
 .input, .textarea {
-  width: 100%;
-  background: rgba(0,0,0,.4);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  padding: 13px 16px;
-  transition: all .25s ease;
-  outline: none;
+  width:100%; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--r-sm); color:var(--text);
+  font-family:'JetBrains Mono',monospace; font-size:14px; padding:13px 16px;
+  transition:all .25s ease; outline:none;
 }
-.input:focus, .textarea:focus {
-  border-color: var(--g);
-  background: rgba(0,0,0,.55);
-  box-shadow: 0 0 0 3px rgba(0,255,136,.08);
-}
-.textarea { min-height: 130px; resize: vertical; line-height: 1.7; }
+.input:focus,.textarea:focus { border-color:var(--g); background:rgba(0,0,0,.55); box-shadow:0 0 0 3px rgba(0,255,136,.08); }
+.textarea { min-height:130px; resize:vertical; line-height:1.7; }
+.pw-wrap { display:flex; gap:8px; align-items:stretch; }
+.pw-toggle { background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.08); border-radius:var(--r-sm); color:var(--muted); padding:0 14px; cursor:pointer; font-size:16px; transition:all .2s ease; flex-shrink:0; }
+.pw-toggle:hover { border-color:var(--g); color:var(--g); }
 
-.pw-wrap { display: flex; gap: 8px; align-items: stretch; }
-.pw-toggle {
-  background: rgba(0,0,0,.4);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: var(--r-sm);
-  color: var(--muted);
-  padding: 0 14px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all .2s ease;
-  flex-shrink: 0;
-}
-.pw-toggle:hover { border-color: var(--g); color: var(--g); }
-
-.strength-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-}
-.strength-bars { display: flex; gap: 4px; flex: 1; }
-.bar {
-  flex: 1; height: 3px;
-  background: rgba(255,255,255,.08);
-  border-radius: 2px;
-  transition: all .3s ease;
-}
-.bar.weak   { background: var(--err); box-shadow: 0 0 6px rgba(255,79,79,.6); }
-.bar.medium { background: var(--warn); box-shadow: 0 0 6px rgba(255,166,43,.6); }
-.bar.strong { background: var(--g); box-shadow: 0 0 8px rgba(0,255,136,.8); }
-.strength-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  min-width: 44px;
-  text-align: right;
-  transition: color .3s;
-}
+.strength-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.strength-bars { display:flex; gap:4px; flex:1; }
+.bar { flex:1; height:3px; background:rgba(255,255,255,.08); border-radius:2px; transition:all .3s ease; }
+.bar.weak   { background:var(--err); box-shadow:0 0 6px rgba(255,79,79,.6); }
+.bar.medium { background:var(--warn); box-shadow:0 0 6px rgba(255,166,43,.6); }
+.bar.strong { background:var(--g); box-shadow:0 0 8px rgba(0,255,136,.8); }
+.strength-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; min-width:44px; text-align:right; transition:color .3s; }
 
 /* FILE PICK */
 .file-pick {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed rgba(0,255,136,.25);
-  border-radius: var(--r-sm);
-  padding: 28px 20px;
-  cursor: pointer;
-  transition: all .25s ease;
-  background: rgba(0,0,0,.3);
-  text-align: center;
-  gap: 8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border:1px dashed rgba(0,255,136,.25); border-radius:var(--r-sm);
+  padding:28px 20px; cursor:pointer; transition:all .25s ease;
+  background:rgba(0,0,0,.3); text-align:center; gap:8px;
 }
-.file-pick:hover, .file-pick.drag { border-color: var(--g); background: rgba(0,255,136,.06); }
-.file-pick-icon { font-size: 28px; line-height: 1; }
-.file-pick-title { color: var(--g); font-weight: 600; font-size: 14px; }
-.file-pick-sub { color: var(--muted); font-size: 12px; }
-.file-info-row {
-  margin-top: 10px;
-  padding: 10px 14px;
-  background: rgba(0,255,136,.07);
-  border: 1px solid rgba(0,255,136,.2);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  display: none;
-}
-.file-info-row.show { display: flex; }
-.file-info-name { color: var(--g); font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
-.file-info-size { color: var(--muted); font-size: 11px; white-space: nowrap; }
-.file-clear { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; transition: color .2s; flex-shrink: 0; }
-.file-clear:hover { color: var(--err); }
+.file-pick:hover,.file-pick.drag { border-color:var(--g); background:rgba(0,255,136,.06); }
+.file-pick-icon { font-size:28px; line-height:1; }
+.file-pick-title { color:var(--g); font-weight:600; font-size:14px; }
+.file-pick-sub { color:var(--muted); font-size:12px; }
+.file-info-row { margin-top:10px; padding:10px 14px; background:rgba(0,255,136,.07); border:1px solid rgba(0,255,136,.2); border-radius:10px; display:none; align-items:center; justify-content:space-between; gap:10px; }
+.file-info-row.show { display:flex; }
+.file-info-name { color:var(--g); font-family:'JetBrains Mono',monospace; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+.file-info-size { color:var(--muted); font-size:11px; white-space:nowrap; }
+.file-clear { background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; transition:color .2s; flex-shrink:0; }
+.file-clear:hover { color:var(--err); }
 
 /* PROGRESS */
-.progress-wrap { height: 3px; background: rgba(255,255,255,.06); border-radius: 2px; margin: 12px 0; overflow: hidden; display: none; }
-.progress-wrap.show { display: block; }
-.progress-fill {
-  height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--g), var(--b));
-  border-radius: 2px;
-  transition: width .25s ease;
-  box-shadow: 0 0 8px rgba(0,255,136,.5);
+.progress-wrap { height:3px; background:rgba(255,255,255,.06); border-radius:2px; margin:12px 0; overflow:hidden; display:none; }
+.progress-wrap.show { display:block; }
+.progress-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--g),var(--b)); border-radius:2px; transition:width .25s ease; box-shadow:0 0 8px rgba(0,255,136,.5); }
+
+/* STATUS STRIP */
+.status-strip {
+  display:none; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:10px; margin-top:10px;
+  font-size:12px; font-weight:600;
+  font-family:'JetBrains Mono',monospace;
 }
+.status-strip.show { display:flex; }
+.status-strip.info { background:rgba(0,217,255,.07); border:1px solid rgba(0,217,255,.2); color:var(--b); }
+.status-strip.warn { background:rgba(255,166,43,.07); border:1px solid rgba(255,166,43,.2); color:var(--warn); }
+.status-strip.ok   { background:rgba(0,255,136,.07); border:1px solid rgba(0,255,136,.2); color:var(--g); }
+.status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; animation:pulse-dot 1.2s ease-in-out infinite; }
+.status-dot.g { background:var(--g); box-shadow:0 0 6px var(--g); }
+.status-dot.b { background:var(--b); box-shadow:0 0 6px var(--b); }
+.status-dot.w { background:var(--warn); box-shadow:0 0 6px var(--warn); animation:none; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
 
 /* BUTTONS */
-.btn-row { display: flex; gap: 10px; margin-top: 6px; }
+.btn-row { display:flex; gap:10px; margin-top:6px; }
 .btn {
-  flex: 1;
-  padding: 15px;
-  border: none;
-  border-radius: var(--r-sm);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: .5px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  position: relative;
-  overflow: hidden;
+  flex:1; padding:15px; border:none; border-radius:var(--r-sm);
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; letter-spacing:.5px;
+  cursor:pointer; transition:transform 0.2s, box-shadow 0.2s, background 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  position:relative; overflow:hidden;
 }
-.btn:active { transform: scale(.98); }
-.btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
-.btn:after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255,255,255,.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.4s, height 0.4s;
-}
-.btn:active:after {
-  width: 200%;
-  height: 200%;
-}
-
-.btn-primary-enc {
-  background: linear-gradient(135deg, var(--g), var(--b));
-  color: #080814;
-  box-shadow: 0 4px 16px rgba(0,255,136,.3);
-}
-.btn-primary-enc:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(0,255,136,.5); transform: translateY(-1px); }
-
-.btn-primary-dec {
-  background: linear-gradient(135deg, var(--b), var(--g));
-  color: #080814;
-  box-shadow: 0 4px 16px rgba(0,217,255,.3);
-}
-.btn-primary-dec:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(0,217,255,.5); transform: translateY(-1px); }
-
-.btn-ghost {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.1);
-  color: var(--muted);
-  flex: 0 0 auto;
-  padding: 15px 18px;
-}
-.btn-ghost:hover:not(:disabled) { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.2); color: var(--text); }
-
-.btn-icon-content {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(0,0,0,.3);
-  border-top-color: #080814;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  flex-shrink: 0;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+.btn:active { transform:scale(.98); }
+.btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+.btn::after { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.3); transform:translate(-50%,-50%); transition:width .4s,height .4s; }
+.btn:active::after { width:200%; height:200%; }
+.btn-primary-enc { background:linear-gradient(135deg,var(--g),var(--b)); color:#080814; box-shadow:0 4px 16px rgba(0,255,136,.3); }
+.btn-primary-enc:hover:not(:disabled) { box-shadow:0 6px 24px rgba(0,255,136,.5); transform:translateY(-1px); }
+.btn-primary-dec { background:linear-gradient(135deg,var(--b),var(--g)); color:#080814; box-shadow:0 4px 16px rgba(0,217,255,.3); }
+.btn-primary-dec:hover:not(:disabled) { box-shadow:0 6px 24px rgba(0,217,255,.5); transform:translateY(-1px); }
+.btn-ghost { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:var(--muted); flex:0 0 auto; padding:15px 18px; }
+.btn-ghost:hover:not(:disabled) { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); color:var(--text); }
+.btn-icon-content { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(0,0,0,.3); border-top-color:#080814; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
 
 /* RESULT */
 .result-card {
-  background: rgba(0,0,0,.5);
-  border: 1px solid rgba(0,255,136,.2);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-top: 14px;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  opacity: 0;
-  transform: translateY(8px);
-  display: none;
+  background:rgba(0,0,0,.5); border:1px solid rgba(0,255,136,.2);
+  border-radius:var(--radius); padding:20px; margin-top:14px;
+  transition:opacity .3s ease,transform .3s ease;
+  opacity:0; transform:translateY(8px); display:none;
 }
-.result-card.show {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
-}
-.result-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.result-title { color: var(--g); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
-.result-actions { display: flex; gap: 8px; }
+.result-card.show { display:block; opacity:1; transform:translateY(0); }
+.result-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.result-title { color:var(--g); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; }
+.result-actions { display:flex; gap:8px; }
+.result-meta { font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(0,255,136,.4); margin-bottom:10px; display:flex; gap:14px; flex-wrap:wrap; }
 .result-text {
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--g);
-  font-size: 12px;
-  line-height: 1.8;
-  word-break: break-all;
-  white-space: pre-wrap;
-  max-height: 260px;
-  overflow-y: auto;
-  padding-right: 4px;
+  font-family:'JetBrains Mono',monospace; color:var(--g); font-size:12px;
+  line-height:1.8; word-break:break-all; white-space:pre-wrap;
+  max-height:260px; overflow-y:auto; padding-right:4px;
 }
+.btn-icon { background:rgba(0,255,136,.1); border:1px solid rgba(0,255,136,.25); color:var(--g); padding:7px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; font-family:'Space Grotesk',sans-serif; transition:all .2s ease; display:flex; align-items:center; gap:5px; }
+.btn-icon:hover { background:rgba(0,255,136,.2); border-color:var(--g); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,255,136,.2); }
+.counter { text-align:right; color:rgba(0,255,136,.4); font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:5px; }
+.warn-bar { background:rgba(255,166,43,.07); border:1px solid rgba(255,166,43,.2); border-radius:8px; padding:8px 12px; color:var(--warn); font-size:12px; display:flex; align-items:center; gap:6px; margin-top:10px; }
 
-.btn-icon {
-  background: rgba(0,255,136,.1);
-  border: 1px solid rgba(0,255,136,.25);
-  color: var(--g);
-  padding: 7px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: 'Space Grotesk', sans-serif;
-  transition: all .2s ease;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.btn-icon:hover {
-  background: rgba(0,255,136,.2);
-  border-color: var(--g);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,255,136,.2);
-}
+/* TOAST */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(40px); background:rgba(10,10,26,.97); border:1px solid rgba(0,255,136,.4); color:var(--g); padding:11px 22px; border-radius:30px; font-size:13px; font-weight:600; opacity:0; transition:all .3s cubic-bezier(0.34,1.56,0.64,1); z-index:3000; white-space:nowrap; max-width:calc(100vw - 32px); pointer-events:none; font-family:'Space Grotesk',sans-serif; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.err { border-color:rgba(255,79,79,.5); color:var(--err); }
+.toast.ok  { border-color:rgba(0,255,136,.5); color:var(--g); }
 
-.counter {
-  text-align: right;
-  color: rgba(0,255,136,.4);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  margin-top: 5px;
-}
+/* OVERLAY / MODAL */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; z-index:2000; padding:20px; }
+.overlay.show { display:flex; }
+.modal { background:#0c0c1e; border:1px solid rgba(0,255,136,.2); border-radius:var(--radius); padding:28px; max-width:480px; width:100%; max-height:85vh; overflow-y:auto; animation:modal-in .25s ease; }
+@keyframes modal-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+.modal-title { color:var(--g); font-size:18px; font-weight:700; }
+.modal-close { width:32px; height:32px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.modal-close:hover { background:rgba(255,79,79,.15); border-color:rgba(255,79,79,.4); color:var(--err); }
+.modal-section { margin-bottom:20px; }
+.modal-h { color:var(--g); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.modal-p { color:rgba(255,255,255,.7); font-size:13px; line-height:1.8; }
+.modal-list { color:rgba(255,255,255,.7); font-size:13px; line-height:1.8; padding-left:18px; }
+.modal-list li { margin-bottom:4px; }
 
-.warn-bar {
-  background: rgba(255,166,43,.07);
-  border: 1px solid rgba(255,166,43,.2);
-  border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--warn);
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-}
+.footer { text-align:center; color:rgba(255,255,255,.18); font-size:10px; letter-spacing:1px; margin-top:20px; font-family:'JetBrains Mono',monospace; }
 
-.toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(40px);
-  background: rgba(10,10,26,.97);
-  border: 1px solid rgba(0,255,136,.4);
-  color: var(--g);
-  padding: 11px 22px;
-  border-radius: 30px;
-  font-size: 13px;
-  font-weight: 600;
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  z-index: 3000;
-  white-space: nowrap;
-  max-width: calc(100vw - 32px);
-  pointer-events: none;
-  font-family: 'Space Grotesk', sans-serif;
-}
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-  animation: bounce-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.toast.err { border-color: rgba(255,79,79,.5); color: var(--err); }
-.toast.ok  { border-color: rgba(0,255,136,.5); color: var(--g); }
-
-@keyframes bounce-in {
-  0% { transform: translateX(-50%) translateY(40px); opacity: 0; }
-  60% { transform: translateX(-50%) translateY(-5px); }
-  100% { transform: translateX(-50%) translateY(0); opacity: 1; }
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.8);
-  backdrop-filter: blur(10px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
-}
-.overlay.show { display: flex; }
-.modal {
-  background: #0c0c1e;
-  border: 1px solid rgba(0,255,136,.2);
-  border-radius: var(--radius);
-  padding: 28px;
-  max-width: 480px;
-  width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  animation: modal-in .25s ease;
-}
-@keyframes modal-in {
-  from { opacity: 0; transform: scale(.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-.modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 22px;
-}
-.modal-title { color: var(--g); font-size: 18px; font-weight: 700; }
-.modal-close {
-  width: 32px; height: 32px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.1);
-  color: var(--muted);
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-}
-.modal-close:hover { background: rgba(255,79,79,.15); border-color: rgba(255,79,79,.4); color: var(--err); }
-.modal-section { margin-bottom: 20px; }
-.modal-h { color: var(--g); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-.modal-p { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; }
-.modal-list { color: rgba(255,255,255,.7); font-size: 13px; line-height: 1.8; padding-left: 18px; }
-.modal-list li { margin-bottom: 4px; }
-
-.footer {
-  text-align: center;
-  color: rgba(255,255,255,.18);
-  font-size: 10px;
-  letter-spacing: 1px;
-  margin-top: 20px;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-@media (max-width: 480px) {
-  .card { padding: 18px; }
-  .btn-row { flex-wrap: wrap; }
-  .btn-ghost { flex: 1 1 100%; order: 3; }
-  .logo-text { font-size: 18px; }
-}
-@media (max-width: 360px) {
-  .card { padding: 14px; }
-  .btn-row { gap: 6px; }
-  .btn { padding: 12px; font-size: 12px; }
-  .result-text { font-size: 10px; }
-}
+@media (max-width:480px) { .card{padding:18px} .btn-row{flex-wrap:wrap} .btn-ghost{flex:1 1 100%;order:3} .logo-text{font-size:18px} }
+@media (max-width:360px) { .card{padding:14px} .btn-row{gap:6px} .btn{padding:12px;font-size:12px} .result-text{font-size:10px} }
 </style>
 </head>
 <body>
@@ -632,7 +266,7 @@ body::after {
     <div class="logo">
       <div class="logo-icon">🔐</div>
       <span class="logo-text">BloodyKey</span>
-      <span class="logo-badge">Argon2id</span>
+      <span class="logo-badge">v3 · Argon2id</span>
     </div>
     <button class="help-btn" onclick="openHelp()" aria-label="Справка">?</button>
   </div>
@@ -654,7 +288,8 @@ body::after {
       </div>
       <div class="strength-row">
         <div class="strength-bars">
-          <div class="bar" id="b1"></div><div class="bar" id="b2"></div><div class="bar" id="b3"></div><div class="bar" id="b4"></div>
+          <div class="bar" id="b1"></div><div class="bar" id="b2"></div>
+          <div class="bar" id="b3"></div><div class="bar" id="b4"></div>
         </div>
         <span class="strength-label" id="strengthLabel" style="color:var(--muted)">—</span>
       </div>
@@ -669,6 +304,7 @@ body::after {
 
   <div class="card">
 
+    <!-- Текст: шифрование -->
     <div id="areaTextEnc">
       <div class="field">
         <div class="label"><span>Исходный текст</span></div>
@@ -677,9 +313,11 @@ body::after {
       </div>
     </div>
 
+    <!-- Файл: шифрование -->
     <div id="areaFileEnc" style="display:none">
       <div class="label"><span>Файл для шифрования</span></div>
-      <div class="file-pick" id="fpEnc" onclick="document.getElementById('fInEnc').click()" ondragover="dragOver(event,'fpEnc')" ondragleave="dragLeave('fpEnc')" ondrop="dropFile(event,'enc')">
+      <div class="file-pick" id="fpEnc" onclick="document.getElementById('fInEnc').click()"
+           ondragover="dragOver(event,'fpEnc')" ondragleave="dragLeave('fpEnc')" ondrop="dropFile(event,'enc')">
         <div class="file-pick-icon">📂</div>
         <div class="file-pick-title">Нажмите или перетащите файл</div>
         <div class="file-pick-sub">Любой формат — изображение, документ, архив</div>
@@ -692,6 +330,7 @@ body::after {
       </div>
     </div>
 
+    <!-- Текст: расшифровка -->
     <div id="areaTextDec" style="display:none">
       <div class="field">
         <div class="label"><span>Зашифрованный текст (Base64)</span></div>
@@ -700,12 +339,14 @@ body::after {
       </div>
     </div>
 
+    <!-- Файл: расшифровка -->
     <div id="areaFileDec" style="display:none">
       <div class="label"><span>Зашифрованный файл (.bloody)</span></div>
-      <div class="file-pick" id="fpDec" onclick="document.getElementById('fInDec').click()" ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
+      <div class="file-pick" id="fpDec" onclick="document.getElementById('fInDec').click()"
+           ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
         <div class="file-pick-icon">🩸</div>
         <div class="file-pick-title">Выбрать .bloody файл</div>
-        <div class="file-pick-sub">Файлы с расширением .bloody</div>
+        <div class="file-pick-sub">Файлы с расширением .bloody (версия 2 и 3)</div>
       </div>
       <input type="file" id="fInDec" style="display:none" accept=".bloody" onchange="pickFile(event,'dec')">
       <div class="file-info-row" id="fInfoDec">
@@ -713,6 +354,12 @@ body::after {
         <span class="file-info-size" id="fSizeDec"></span>
         <button class="file-clear" onclick="clearFile('dec')" aria-label="Убрать файл">✕</button>
       </div>
+    </div>
+
+    <!-- Строка статуса Argon2 -->
+    <div class="status-strip" id="statusStrip">
+      <div class="status-dot b" id="statusDot"></div>
+      <span id="statusText">Вычисление Argon2id...</span>
     </div>
 
     <div class="progress-wrap" id="prog"><div class="progress-fill" id="progFill"></div></div>
@@ -735,20 +382,48 @@ body::after {
         <button class="btn-icon" onclick="copyResult()">📋 Скопировать</button>
       </div>
     </div>
+    <div class="result-meta" id="resultMeta"></div>
     <div class="result-text" id="resultText"></div>
   </div>
 
-  <div class="footer">BLOODYKEY © 2026 · AES-256-GCM · ARGON2ID · 128MB · 5 итераций · v3</div>
+  <div class="footer">BLOODYKEY v3 © 2026 · AES-256-GCM · ARGON2ID · 128MB · ITER 4 · PARALLEL 8 · SALT 256-bit</div>
 </div>
 
+<!-- HELP MODAL -->
 <div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="modal">
-    <div class="modal-head"><span class="modal-title">❓ Справка</span><button class="modal-close" onclick="closeHelp()">×</button></div>
-    <div class="modal-section"><div class="modal-h">🔐 Как работает шифрование</div><p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (встроенный WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 5 итераций, 4 потока). Каждое шифрование уникально, заголовок файла защищён AAD.</p></div>
-    <div class="modal-section"><div class="modal-h">📝 Режим «Текст»</div><ul class="modal-list"><li>Введите текст → «Зашифровать» → получите Base64-строку.</li><li>Отправьте её получателю — без пароля бесполезна.</li><li>Получатель вставляет строку, вводит пароль и расшифровывает.</li></ul></div>
-    <div class="modal-section"><div class="modal-h">📁 Режим «Файл»</div><ul class="modal-list"><li>Выберите любой файл → после шифрования скачается <strong>.bloody</strong> (версия 3).</li><li>Получатель выбирает .bloody → вводит пароль → скачивает оригинал.</li><li>Размер увеличивается на 50 байт (32 соль + 12 IV + 6 заголовок), заголовок защищён AAD, drag&drop работает.</li><li>Поддерживаются старые файлы версии 2 (соль 16 байт).</li></ul></div>
-    <div class="modal-section"><div class="modal-h">⚠️ Безопасность пароля</div><p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл. Используйте личную встречу, телефон или защищённый мессенджер.</p></div>
-    <div class="modal-section"><div class="modal-h">⌨️ Горячие клавиши</div><p class="modal-p">Ctrl+E — зашифровать / расшифровать</p></div>
+    <div class="modal-head">
+      <span class="modal-title">❓ Справка · v3</span>
+      <button class="modal-close" onclick="closeHelp()">×</button>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">🔐 Криптография</div>
+      <p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 4 итерации, 8 потоков). Каждое шифрование уникально благодаря случайным Salt (256-bit) и IV (96-bit).</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">📝 Режим «Текст»</div>
+      <ul class="modal-list">
+        <li>Введите текст → «Зашифровать» → получите Base64-строку.</li>
+        <li>Отправьте её получателю — без пароля бесполезна.</li>
+        <li>Получатель вставляет строку, вводит пароль и расшифровывает.</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">📁 Режим «Файл»</div>
+      <ul class="modal-list">
+        <li>Выберите файл → после шифрования скачается <strong>.bloody</strong> (v3).</li>
+        <li>Оригинальное имя файла зашифровано внутри — восстанавливается автоматически.</li>
+        <li>Поддерживаются файлы v2 и v3.</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">⚠️ Безопасность пароля</div>
+      <p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл.</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">⌨️ Горячие клавиши</div>
+      <p class="modal-p">Ctrl+E — зашифровать / расшифровать · Esc — закрыть справку</p>
+    </div>
   </div>
 </div>
 
@@ -760,79 +435,89 @@ const ENC = new TextEncoder();
 const DEC = new TextDecoder();
 
 const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
-// Версия 3: соль 32 байта
-const BLOODY_VERSION_V3 = new Uint8Array([0x00, 0x03]);
-// Версия 2: соль 16 байт (для обратной совместимости)
-const BLOODY_VERSION_V2 = new Uint8Array([0x00, 0x02]);
+const VERSION_V2   = new Uint8Array([0x00, 0x02]);
+const VERSION_V3   = new Uint8Array([0x00, 0x03]);
 
-async function deriveKey(password, salt) {
+const PARAM_SETS = {
+  0x01: { time:4, mem:128*1024, parallelism:4 }, // v2 legacy
+  0x02: { time:4, mem:128*1024, parallelism:8 }, // v3 current
+};
+const CURRENT_PARAMS_VERSION = 0x02;
+
+async function deriveKey(password, salt, paramsVersion) {
+  const p = PARAM_SETS[paramsVersion];
+  if (!p) throw new Error('Неизвестная версия параметров Argon2id: ' + paramsVersion);
   const hash = await argon2.hash({
     pass: password,
     salt: salt,
-    time: 5,                // Увеличено с 4 до 5
-    mem: 128 * 1024,        // 128 MB
-    parallelism: 4,
+    time: p.time,
+    mem:  p.mem,
+    parallelism: p.parallelism,
     hashLen: 32,
     type: argon2.ArgonType.Argon2id
   });
-  return crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  const key = await crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  hash.hash.fill(0);
+  return key;
 }
 
-// Шифрование файла (версия 3, соль 32 байта)
-async function encryptBuf(buf, password) {
-  const salt = crypto.getRandomValues(new Uint8Array(32)); // 32 байта
-  const iv   = crypto.getRandomValues(new Uint8Array(12));
-  const key  = await deriveKey(password, salt);
-  const header = new Uint8Array(6);
+async function encryptBuf(buf, password, originalName) {
+  const salt   = crypto.getRandomValues(new Uint8Array(32));
+  const iv     = crypto.getRandomValues(new Uint8Array(12));
+  const pVer   = CURRENT_PARAMS_VERSION;
+
+  const header = new Uint8Array(7);
   header.set(BLOODY_MAGIC, 0);
-  header.set(BLOODY_VERSION_V3, 4);
-  const ct = await crypto.subtle.encrypt(
+  header.set(VERSION_V3, 4);
+  header[6] = pVer;
+
+  const meta    = JSON.stringify({ name: originalName || '', ts: Date.now() });
+  const metaBuf = ENC.encode(meta);
+  const metaLen = new Uint8Array(new Uint32Array([metaBuf.length]).buffer);
+
+  const dataBuf = buf instanceof ArrayBuffer ? new Uint8Array(buf) : buf;
+  const plain   = new Uint8Array(4 + metaBuf.length + dataBuf.byteLength);
+  plain.set(metaLen, 0);
+  plain.set(metaBuf, 4);
+  plain.set(dataBuf, 4 + metaBuf.length);
+
+  const key = await deriveKey(password, salt, pVer);
+  const ct  = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, additionalData: header },
     key,
-    buf
+    plain
   );
-  const result = new Uint8Array(6 + 32 + 12 + ct.byteLength);
+
+  const result = new Uint8Array(7 + 32 + 12 + ct.byteLength);
   result.set(header, 0);
-  result.set(salt, 6);
-  result.set(iv, 38);
-  result.set(new Uint8Array(ct), 50);
+  result.set(salt,   7);
+  result.set(iv,     39);
+  result.set(new Uint8Array(ct), 51);
   return result.buffer;
 }
 
-// Расшифровка файла (поддержка версий 2 и 3)
 async function decryptBuf(buf, password) {
   const data = new Uint8Array(buf);
-  if (data.length < 6) throw new Error('Файл слишком короткий или повреждён');
+  if (data.length < 50) throw new Error('Файл слишком короткий или повреждён');
   if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||
       data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
     throw new Error('Неверный формат файла (.bloody)');
+
   const version = (data[4] << 8) | data[5];
-  let salt, iv, ct, header, offset;
-  
-  if (version === 0x0003) {
-    // Версия 3: соль 32 байта
-    if (data.length < 50) throw new Error('Файл слишком короткий (v3)');
-    offset = 6;
-    salt = data.slice(offset, offset + 32);
-    iv   = data.slice(offset + 32, offset + 44);
-    ct   = data.slice(offset + 44);
-    header = data.slice(0, 6);
-  } else if (version === 0x0002) {
-    // Версия 2: соль 16 байт (обратная совместимость)
-    if (data.length < 34) throw new Error('Файл слишком короткий (v2)');
-    offset = 6;
-    salt = data.slice(offset, offset + 16);
-    iv   = data.slice(offset + 16, offset + 28);
-    ct   = data.slice(offset + 28);
-    header = data.slice(0, 6);
-  } else {
-    throw new Error('Неподдерживаемая версия файла (обновите BloodyKey)');
-  }
-  
+  if (version === 0x0002) return await decryptV2(data, password);
+  if (version !== 0x0003) throw new Error('Неподдерживаемая версия файла');
+
+  const pVer   = data[6];
+  const header = data.slice(0, 7);
+  const salt   = data.slice(7, 39);
+  const iv     = data.slice(39, 51);
+  const ct     = data.slice(51);
   if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
-  const key = await deriveKey(password, salt);
+
+  const key = await deriveKey(password, salt, pVer);
+  let plainBuf;
   try {
-    return await crypto.subtle.decrypt(
+    plainBuf = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv, additionalData: header },
       key,
       ct
@@ -840,11 +525,40 @@ async function decryptBuf(buf, password) {
   } catch {
     throw new Error('Неверный пароль или данные повреждены');
   }
+
+  const plain   = new Uint8Array(plainBuf);
+  const metaLen = new Uint32Array(plain.buffer, 0, 1)[0];
+  const metaStr = DEC.decode(plain.slice(4, 4 + metaLen));
+  let originalName = '';
+  try {
+    const meta = JSON.parse(metaStr);
+    originalName = meta.name || '';
+  } catch { /* игнорируем */ }
+  const fileData = plain.slice(4 + metaLen).buffer;
+  return { data: fileData, name: originalName };
 }
 
-// Текстовые функции (используют encryptBuf/decryptBuf)
+async function decryptV2(data, password) {
+  const header = data.slice(0, 6);
+  const salt   = data.slice(6, 22);
+  const iv     = data.slice(22, 34);
+  const ct     = data.slice(34);
+  if (ct.length < 16) throw new Error('Повреждённый файл v2');
+  const key = await deriveKey(password, salt, 0x01);
+  try {
+    const plainBuf = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, additionalData: header },
+      key,
+      ct
+    );
+    return { data: plainBuf, name: '' };
+  } catch {
+    throw new Error('Неверный пароль или данные повреждены (v2)');
+  }
+}
+
 async function encryptText(plain, pw) {
-  const buf = await encryptBuf(ENC.encode(plain), pw);
+  const buf = await encryptBuf(ENC.encode(plain), pw, '');
   const u8 = new Uint8Array(buf);
   let s = '';
   for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
@@ -854,7 +568,9 @@ async function encryptText(plain, pw) {
 async function decryptText(b64, pw) {
   const bin = atob(b64.trim());
   const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
-  return DEC.decode(await decryptBuf(buf, pw));
+  const res = await decryptBuf(buf, pw);
+  const ab  = res && res.data ? res.data : res;
+  return DEC.decode(ab);
 }
 
 function readFile(file) {
@@ -868,47 +584,44 @@ function readFile(file) {
 
 function downloadBlob(buf, name) {
   const blob = new Blob([buf], { type: 'application/octet-stream' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
   a.href = url; a.download = name; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ========== UI ==========
-let mode = 'enc', dtype = 'text', fileEnc = null, fileDec = null, busy = false;
-
+let mode='enc', dtype='text', fileEnc=null, fileDec=null, busy=false;
 function $(id) { return document.getElementById(id); }
-function show(id, v) { $(id).style.display = v ? '' : 'none'; }
+function show(id,v) { $(id).style.display = v ? '' : 'none'; }
 
 function onKeyInput() {
   const v = $('secretKey').value;
   let s = 0;
-  if (v.length >= 4) s++;
-  if (v.length >= 8) s++;
+  if (v.length >= 4)  s++;
+  if (v.length >= 8)  s++;
   if (v.length >= 12) s++;
   if (/[A-Z]/.test(v) && /[0-9!@#$%^&*]/.test(v)) s++;
-  const cls = s <= 1 ? 'weak' : s <= 2 ? 'medium' : 'strong';
+  const cls = s<=1 ? 'weak' : s<=2 ? 'medium' : 'strong';
   const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Сильный'};
-  for (let i=1;i<=4;i++) {
-    const b = $(`b${i}`);
-    b.className = 'bar' + (i<=s ? ' '+cls : '');
+  for (let i=1; i<=4; i++) {
+    $(`b${i}`).className = 'bar' + (i<=s ? ' '+cls : '');
   }
   const lbl = $('strengthLabel');
   lbl.textContent = labels[s]||'—';
-  lbl.style.color = s===0 ? 'var(--muted)' : (cls==='weak'?'var(--err)':(cls==='medium'?'var(--warn)':'var(--g)'));
+  lbl.style.color = s===0?'var(--muted)':(cls==='weak'?'var(--err)':(cls==='medium'?'var(--warn)':'var(--g)'));
 }
 
 function switchMode(m) {
   mode = m;
-  $('tabEnc').className = 'tab' + (m==='enc' ? ' active-enc' : '');
-  $('tabDec').className = 'tab' + (m==='dec' ? ' active-dec' : '');
+  $('tabEnc').className = 'tab' + (m==='enc'?' active-enc':'');
+  $('tabDec').className = 'tab' + (m==='dec'?' active-dec':'');
   const isEnc = m==='enc';
-  $('mainBtn').className = 'btn ' + (isEnc ? 'btn-primary-enc' : 'btn-primary-dec');
+  $('mainBtn').className = 'btn '+(isEnc?'btn-primary-enc':'btn-primary-dec');
   const iconSpan = $('mainBtnIcon');
-  if (iconSpan) iconSpan.textContent = isEnc ? '🔐' : '🔓';
-  $('mainBtnText').textContent = isEnc ? 'Зашифровать' : 'Расшифровать';
-  hideResult();
-  setType(dtype);
+  if (iconSpan) iconSpan.textContent = isEnc?'🔐':'🔓';
+  $('mainBtnText').textContent = isEnc?'Зашифровать':'Расшифровать';
+  hideResult(); setType(dtype);
 }
 
 function setType(t) {
@@ -926,86 +639,99 @@ function pickFile(e, side) {
   if (f) setFile(f, side);
 }
 function setFile(f, side) {
-  if (side==='enc') fileEnc = f;
-  else fileDec = f;
-  const suffix = side==='enc' ? 'Enc' : 'Dec';
-  $(`fName${suffix}`).textContent = f.name;
-  $(`fSize${suffix}`).textContent = formatSize(f.size);
-  $(`fInfo${suffix}`).classList.add('show');
+  if (side==='enc') fileEnc=f; else fileDec=f;
+  const s = side==='enc'?'Enc':'Dec';
+  $(`fName${s}`).textContent = f.name;
+  $(`fSize${s}`).textContent = formatSize(f.size);
+  $(`fInfo${s}`).classList.add('show');
 }
 function clearFile(side) {
-  const suffix = side==='enc' ? 'Enc' : 'Dec';
-  if (side==='enc') { fileEnc = null; $('fInEnc').value = ''; }
-  else { fileDec = null; $('fInDec').value = ''; }
-  $(`fInfo${suffix}`).classList.remove('show');
+  const s = side==='enc'?'Enc':'Dec';
+  if (side==='enc') { fileEnc=null; $('fInEnc').value=''; }
+  else { fileDec=null; $('fInDec').value=''; }
+  $(`fInfo${s}`).classList.remove('show');
 }
-function dragOver(e,id) { e.preventDefault(); $(id).classList.add('drag'); }
-function dragLeave(id) { $(id).classList.remove('drag'); }
-function dropFile(e, side) {
+function dragOver(e,id)  { e.preventDefault(); $(id).classList.add('drag'); }
+function dragLeave(id)   { $(id).classList.remove('drag'); }
+function dropFile(e,side) {
   e.preventDefault();
-  const id = side==='enc' ? 'fpEnc' : 'fpDec';
-  $(id).classList.remove('drag');
+  $(side==='enc'?'fpEnc':'fpDec').classList.remove('drag');
   const f = e.dataTransfer?.files?.[0];
   if (f) {
     if (side==='dec' && !f.name.endsWith('.bloody')) { toast('Ожидается файл .bloody!','err'); return; }
-    setFile(f, side);
+    setFile(f,side);
   }
 }
 function setProgress(p) {
-  const wrap = $('prog'), fill = $('progFill');
+  const wrap=$('prog'), fill=$('progFill');
   if (p<=0) { wrap.classList.remove('show'); fill.style.width='0%'; return; }
   wrap.classList.add('show');
-  fill.style.width = Math.min(p,100)+'%';
-  if (p>=100) setTimeout(()=>setProgress(0),600);
+  fill.style.width=Math.min(p,100)+'%';
+  if (p>=100) setTimeout(()=>setProgress(0),700);
+}
+function setStatus(msg, type='info', showIt=true) {
+  const strip=$('statusStrip'), dot=$('statusDot'), txt=$('statusText');
+  if (!showIt) { strip.classList.remove('show'); return; }
+  strip.className='status-strip show '+type;
+  dot.className='status-dot '+(type==='info'?'b':type==='ok'?'g':'w');
+  txt.textContent=msg;
 }
 function setBusy(v) {
-  busy = v;
-  const btn = $('mainBtn');
-  btn.disabled = v;
-  const iconSpan = $('mainBtnIcon');
-  const textSpan = $('mainBtnText');
+  busy=v;
+  const btn=$('mainBtn');
+  btn.disabled=v;
+  const iconSpan=$('mainBtnIcon'), textSpan=$('mainBtnText');
   if (v) {
-    if (iconSpan) iconSpan.innerHTML = '<span class="spinner"></span>';
-    if (textSpan) textSpan.textContent = 'Обработка…';
+    if (iconSpan) iconSpan.innerHTML='<span class="spinner"></span>';
+    if (textSpan) textSpan.textContent='Обработка…';
   } else {
-    if (iconSpan) iconSpan.innerHTML = mode === 'enc' ? '🔐' : '🔓';
-    if (textSpan) textSpan.textContent = mode === 'enc' ? 'Зашифровать' : 'Расшифровать';
+    if (iconSpan) iconSpan.innerHTML=mode==='enc'?'🔐':'🔓';
+    if (textSpan) textSpan.textContent=mode==='enc'?'Зашифровать':'Расшифровать';
+    setStatus('',null,false);
   }
 }
-function showResult(text, title) {
+function showResult(text, title, meta) {
   $('resultTitle').textContent = title;
-  $('resultText').textContent = text;
+  $('resultText').textContent  = text;
+  $('resultMeta').textContent  = meta || '';
   $('resultCard').classList.add('show');
 }
 function hideResult() {
   $('resultCard').classList.remove('show');
-  $('resultText').textContent = '';
+  $('resultText').textContent='';
+  $('resultMeta').textContent='';
 }
 function copyResult() {
-  const txt = $('resultText').textContent;
+  const txt=$('resultText').textContent;
   if (!txt) return;
-  navigator.clipboard.writeText(txt).then(()=>toast('Скопировано ✓')).catch(()=>{
-    const ta = Object.assign(document.createElement('textarea'),{value:txt});
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
-    toast('Скопировано ✓');
-  });
+  navigator.clipboard.writeText(txt)
+    .then(()=>toast('Скопировано ✓'))
+    .catch(()=>{
+      const ta=Object.assign(document.createElement('textarea'),{value:txt});
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      toast('Скопировано ✓');
+    });
 }
 let _toastTimer;
-function toast(msg, type='ok') {
-  const el = $('toast');
-  el.textContent = msg;
-  el.className = `toast show ${type}`;
+function toast(msg,type='ok') {
+  const el=$('toast');
+  el.textContent=msg;
+  el.className=`toast show ${type}`;
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(()=>el.classList.remove('show'),2400);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
 }
-function cnt(inputId, counterId) {
-  const n = $(inputId)?.value?.length || 0;
-  $(counterId).textContent = n.toLocaleString('ru')+' симв.';
+function cnt(inputId,counterId) {
+  const n=$(inputId)?.value?.length||0;
+  $(counterId).textContent=n.toLocaleString('ru')+' симв.';
 }
 function formatSize(b) {
-  if (b<1024) return b+' B';
+  if (b<1024)    return b+' B';
   if (b<1048576) return (b/1024).toFixed(1)+' KB';
   return (b/1048576).toFixed(1)+' MB';
+}
+function formatMs(ms) {
+  if (ms<1000) return ms+'ms';
+  return (ms/1000).toFixed(1)+'s';
 }
 function clearAll() {
   ['encIn','decIn'].forEach(id=>{ const e=$(id); if(e) e.value=''; });
@@ -1016,27 +742,28 @@ function clearAll() {
   toast('Очищено');
 }
 function togglePw() {
-  const inp = $('secretKey');
-  const isPw = inp.type === 'password';
-  inp.type = isPw ? 'text' : 'password';
-  $('pwToggle').textContent = isPw ? '🔒' : '👁';
+  const inp=$('secretKey');
+  const isPw=inp.type==='password';
+  inp.type=isPw?'text':'password';
+  $('pwToggle').textContent=isPw?'🔒':'👁';
 }
-function openHelp() { $('helpModal').classList.add('show'); }
+function openHelp()  { $('helpModal').classList.add('show'); }
 function closeHelp() { $('helpModal').classList.remove('show'); }
 
 async function doAction() {
   if (busy) return;
-  const pw = $('secretKey').value;
+  const pw=$('secretKey').value;
   if (!pw) return toast('Введите пароль!','err');
   if (mode==='enc' && pw.length<12) return toast('Пароль: минимум 12 символов!','err');
 
   setBusy(true);
-  await new Promise(r => requestAnimationFrame(r));
-  await new Promise(r => setTimeout(r, 10));
+  setStatus('Вычисление Argon2id (256MB, 4 iter)…','info',true);
+  await new Promise(r=>requestAnimationFrame(r));
+  await new Promise(r=>setTimeout(r,10));
 
   try {
     if (mode==='enc') await doEncrypt(pw);
-    else await doDecrypt(pw);
+    else              await doDecrypt(pw);
   } catch(e) {
     toast('Ошибка: '+(e.message||'данные повреждены!'),'err');
     console.error(e);
@@ -1045,65 +772,82 @@ async function doAction() {
     setProgress(0);
   }
 }
+
 async function doEncrypt(pw) {
   if (dtype==='text') {
-    const txt = $('encIn').value.trim();
+    const txt=$('encIn').value.trim();
     if (!txt) throw new Error('Введите текст!');
-    setProgress(30);
-    const result = await encryptText(txt, pw);
+    setProgress(20);
+    const t0=Date.now();
+    const result=await encryptText(txt,pw);
+    const elapsed=Date.now()-t0;
     setProgress(100);
-    showResult(result, 'Зашифрованный текст (Base64)');
+    const meta = `AES-256-GCM · ${formatMs(elapsed)}`;
+    showResult(result,'Зашифрованный текст (Base64)',meta);
     toast('Зашифровано ✓');
   } else {
     if (!fileEnc) throw new Error('Выберите файл!');
-    setProgress(20);
-    const buf = await readFile(fileEnc);
-    setProgress(60);
-    const enc = await encryptBuf(buf, pw);
+    setProgress(15);
+    const buf=await readFile(fileEnc);
+    setProgress(40);
+    const enc=await encryptBuf(buf,pw,fileEnc.name);
     setProgress(90);
-    downloadBlob(enc, fileEnc.name+'.bloody');
+    downloadBlob(enc,fileEnc.name+'.bloody');
     setProgress(100);
-    toast('Файл зашифрован | Ожидайте скачивания...');
+    toast('Файл зашифрован — ожидайте скачивания');
     clearFile('enc');
   }
 }
+
 async function doDecrypt(pw) {
   if (dtype==='text') {
-    const txt = $('decIn').value.trim();
+    const txt=$('decIn').value.trim();
     if (!txt) throw new Error('Вставьте зашифрованный текст!');
-    setProgress(30);
-    const result = await decryptText(txt, pw);
+    setProgress(20);
+    const t0=Date.now();
+    const result=await decryptText(txt,pw);
+    const elapsed=Date.now()-t0;
     setProgress(100);
-    showResult(result, 'Расшифрованный текст');
+    const meta = `AES-256-GCM · ${formatMs(elapsed)}`;
+    showResult(result,'Расшифрованный текст',meta);
     toast('Расшифровано ✓');
   } else {
     if (!fileDec) throw new Error('Выберите .bloody файл!');
-    setProgress(20);
-    const buf = await readFile(fileDec);
-    setProgress(60);
-    const dec = await decryptBuf(buf, pw);
+    setProgress(15);
+    const buf=await readFile(fileDec);
+    setProgress(40);
+    const res=await decryptBuf(buf,pw);
     setProgress(90);
-    let name = fileDec.name;
-    if (name.endsWith('.bloody')) name = name.slice(0,-7);
-    else name = 'decrypted_'+name;
-    downloadBlob(dec, name);
+    let name='';
+    let dataBuf;
+    if (res && res.data !== undefined) {
+      dataBuf=res.data;
+      name=res.name||'';
+    } else {
+      dataBuf=res;
+    }
+    if (!name) {
+      name=fileDec.name.endsWith('.bloody')
+        ? fileDec.name.slice(0,-7)
+        : 'decrypted_'+fileDec.name;
+    }
+    downloadBlob(dataBuf,name);
     setProgress(100);
-    toast('Файл расшифрован | Ожидайте скачивания...');
+    toast('Файл расшифрован — ожидайте скачивания');
     clearFile('dec');
   }
 }
 
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown',e=>{
   if (e.key==='Escape') closeHelp();
   if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e') { e.preventDefault(); doAction(); }
 });
 
-// Регистрация Service Worker для офлайн-работы
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('✓ SW зарегистрирован:', reg.scope))
-      .catch(err => console.log('✗ SW ошибка:', err));
+      .then(reg=>console.log('✓ SW:',reg.scope))
+      .catch(err=>console.log('✗ SW:',err));
   });
 }
 
@@ -1112,4 +856,4 @@ setType('text');
 onKeyInput();
 </script>
 </body>
-  </html>
+    </html>
