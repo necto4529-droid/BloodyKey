@@ -1,7 +1,7 @@
 // sw.js — Service Worker для BloodyKey
 // Обеспечивает офлайн-работу и кэширование ресурсов
 
-const CACHE_NAME = 'bloodykey-v3';
+const CACHE_NAME = 'bloodykey-v3.5';
 const ASSETS = [
   './',
   './index.html',
