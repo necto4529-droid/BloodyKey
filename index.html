@@ -849,10 +849,10 @@ const FORBIDDEN_PASSWORDS = new Set([
   // Добавим ещё пару тысяч случайных слов, чтобы достичь 8000+ (можно сгенерировать, но для краткости остановимся)
 ]);
 
-// Расширенные запрещённые подслова (теперь их >3000)
+// Расширенные запрещённые подслова (теперь без коротких осколков, чтобы избежать ложных срабатываний)
 const FORBIDDEN_SUBSTRINGS = [
   'password','pass','admin','login','secret','master','key','bloody',
-  'qwerty','abc','123','2025','2026','2027','пароль','йцукен','фыва','ячс',
+  'qwerty','пароль','йцукен','фыва','ячс',
   'root','letmein','welcome','monkey','dragon','shadow','superman',
   'batman','starwars','samsung','apple','google','facebook','instagram',
   'tiktok','telegram','whatsapp','vkontakte','одноклассники','москва',
@@ -895,18 +895,12 @@ const FORBIDDEN_SUBSTRINGS = [
   'fiat','alfa','lancia','citroen','peugeot','renault','dacia','seat',
   'skoda','opel','vauxhall','holden','suzuki','yamaha','kawasaki','ducati',
   'harleydavidson','indian','triumph','vespa','piaggio','aprilia','mvagusta',
-  // Leet
-  'p@ss','p@55','p455','pa55','p@$$','qwerty','azerty','qwe123','123qwe',
-  '1q2w3e','1qaz2wsx','zaq12wsx','q1w2e3','admin123','root123','pass123',
-  'login123','secret123','welcome123','letmein123','master123','superman123',
-  'london','paris','berlin','tokyo','beijing','shanghai','delhi','mumbai',
-  'newyork','losangeles','chicago','houston','phoenix','philadelphia',
-  'pizza','burger','sushi','taco','pasta','steak','chicken','coffee',
-  'harrypotter','pokemon','minecraft','fortnite','eminem','tupac','drake',
-  'mustang','camaro','porsche','ferrari','lakers','yankees','barcelona',
-  'teacher','doctor','nurse','engineer','programmer','designer','manager',
-  'dog','cat','lion','tiger','rose','tulip','sunflower','oak','maple','pine',
-  // Добавим ещё 1000+ слов
+  // Leet-специфичные (оставлены только полные слова)
+  'p@ssw0rd','p@ssword','p@55w0rd','p@55word','pa55word','pa55w0rd',
+  'p@$$w0rd','p@$$word','p455w0rd','p455word','qwerty123','qwe123!@#',
+  '1qaz@WSX','!QAZ2wsx','1q2w3e4r','q1w2e3r4','admin123','root123',
+  'letmein123','welcome123','password123','pass123','passw0rd',
+  // Добавим ещё 1000+ слов (оставлены только длинные)
   'star','wars','trek','gate','galactica','firefly','serenity','buffy',
   'angel','spike','willow','xander','giles','cordelia','oz','riley',
   'tara','anya','dawn','faith','glory','mayor','adam','warren','jonathan',
@@ -1142,7 +1136,14 @@ function hasRepeatingPatterns(text) {
 function containsForbiddenWord(text) {
   const lower = text.toLowerCase();
   for (const word of FORBIDDEN_SUBSTRINGS) {
-    if (lower.includes(word)) return word;
+    if (lower.includes(word)) {
+      if (word.length < 4) {
+        const regex = new RegExp('\\b' + word + '\\b');
+        if (regex.test(lower)) return word;
+      } else {
+        return word;
+      }
+    }
   }
   return null;
 }
@@ -1159,7 +1160,9 @@ function hasLeetPattern(text) {
     decoded += leetMap[ch] || ch;
   }
   for (const word of FORBIDDEN_SUBSTRINGS) {
-    if (decoded.includes(word)) return word;
+    if (word.length >= 4 && decoded.includes(word)) {
+      return word;
+    }
   }
   return null;
 }
@@ -1242,7 +1245,7 @@ function checkPasswordStrength(password) {
   
   const valid = errors.length === 0;
   return { valid, strength, errors };
-}
+  }
 
 // ========== UI ==========
 let mode='enc', dtype='text', fileEnc=null, fileDec=null, busy=false;
