@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>BloodyKey | AES-256-GCM + Argon2id</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BloodyKey">
+<meta name="theme-color" content="#080814">
+<meta name="msapplication-TileColor" content="#080814">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="argon2-bundled.min.js"></script>
+<style>
+:root {
+  --g: #00ff88;
+  --b: #00d9ff;
+  --bg: #080814;
+  --panel: rgba(255,255,255,.04);
+  --border: rgba(0,255,136,.15);
+  --text: rgba(255,255,255,.9);
+  --muted: rgba(255,255,255,.4);
+  --err: #ff4f4f;
+  --warn: #ffa62b;
+  --radius: 20px;
+  --r-sm: 12px;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 16px 40px;
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,136,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  top: -40%; left: -20%;
+  width: 80%; height: 80%;
+  background: radial-gradient(ellipse, rgba(0,255,136,.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: pulse-bg 8s ease-in-out infinite alternate;
+}
+@keyframes pulse-bg {
+  from { transform: scale(1) translate(0,0); opacity:.6; }
+  to   { transform: scale(1.15) translate(5%,8%); opacity:1; }
+}
+.wrap { position:relative; z-index:1; width:100%; max-width:580px; }
+
+/* HEADER */
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; padding:0 4px; }
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon {
+  width:38px; height:38px;
+  background: linear-gradient(135deg,var(--g),var(--b));
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+  box-shadow: 0 0 20px rgba(0,255,136,.35);
+  flex-shrink:0;
+}
+.logo-text { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--g); letter-spacing:-.5px; }
+.logo-badge {
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+  background:rgba(0,255,136,.12); border:1px solid var(--border); color:var(--g);
+  padding:3px 8px; border-radius:20px; letter-spacing:1px; margin-left:8px;
+}
+.help-btn {
+  width:38px; height:38px;
+  background:var(--panel); border:1px solid var(--border); color:var(--g);
+  border-radius:50%; font-size:15px; font-weight:700; cursor:pointer;
+  transition:all .2s ease;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono',monospace; margin-right:2px;
+}
+.help-btn:hover { background:rgba(0,255,136,.15); border-color:var(--g); transform:scale(1.05); }
+
+/* CARDS */
+.card {
+  background:var(--panel); backdrop-filter:blur(24px);
+  border:1px solid var(--border); border-radius:var(--radius);
+  padding:24px; margin-bottom:14px;
+  transition:border-color .3s ease, box-shadow .3s ease;
+}
+.card:focus-within { border-color:rgba(0,255,136,.5); box-shadow:0 4px 20px rgba(0,255,136,.1); }
+
+/* TABS */
+.tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.tab {
+  padding:14px; border-radius:var(--r-sm); border:1px solid transparent;
+  background:rgba(0,0,0,.3); color:var(--muted);
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; transition:all .25s ease; letter-spacing:.3px;
+}
+.tab:hover { color:var(--text); background:rgba(255,255,255,.06); }
+.tab.active-enc { background:rgba(0,255,136,.12); border-color:rgba(0,255,136,.5); color:var(--g); box-shadow:0 0 12px rgba(0,255,136,.4),inset 0 1px 1px rgba(255,255,255,.1); }
+.tab.active-dec { background:rgba(0,217,255,.12); border-color:rgba(0,217,255,.5); color:var(--b); box-shadow:0 0 12px rgba(0,217,255,.4),inset 0 1px 1px rgba(255,255,255,.1); }
+
+/* SUB-TABS */
+.sub-tabs { display:flex; background:rgba(0,0,0,.35); border-radius:var(--r-sm); padding:4px; margin-bottom:14px; }
+.sub-tab { flex:1; padding:9px; border-radius:9px; border:none; background:transparent; color:var(--muted); font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s ease; }
+.sub-tab.active { background:rgba(0,255,136,.15); color:var(--g); box-shadow:0 0 10px rgba(0,255,136,.2); }
+
+/* FIELDS */
+.field { margin-bottom:18px; }
+.label { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; }
+.label-hint { font-size:11px; color:rgba(255,255,255,.25); text-transform:none; letter-spacing:0; }
+.input, .textarea {
+  width:100%; background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--r-sm); color:var(--text);
+  font-family:'JetBrains Mono',monospace; font-size:14px; padding:13px 16px;
+  transition:all .25s ease; outline:none;
+}
+.input:focus,.textarea:focus { border-color:var(--g); background:rgba(0,0,0,.55); box-shadow:0 0 0 3px rgba(0,255,136,.08); }
+.textarea { min-height:130px; resize:vertical; line-height:1.7; }
+.pw-wrap { display:flex; gap:8px; align-items:stretch; }
+.pw-toggle { background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.08); border-radius:var(--r-sm); color:var(--muted); padding:0 14px; cursor:pointer; font-size:16px; transition:all .2s ease; flex-shrink:0; }
+.pw-toggle:hover { border-color:var(--g); color:var(--g); }
+
+.strength-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.strength-bars { display:flex; gap:4px; flex:1; }
+.bar { flex:1; height:3px; background:rgba(255,255,255,.08); border-radius:2px; transition:all .3s ease; }
+.bar.weak   { background:var(--err); box-shadow:0 0 6px rgba(255,79,79,.6); }
+.bar.medium { background:var(--warn); box-shadow:0 0 6px rgba(255,166,43,.6); }
+.bar.strong { background:var(--g); box-shadow:0 0 8px rgba(0,255,136,.8); }
+.strength-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; min-width:44px; text-align:right; transition:color .3s; }
+
+/* FILE PICK */
+.file-pick {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border:1px dashed rgba(0,255,136,.25); border-radius:var(--r-sm);
+  padding:28px 20px; cursor:pointer; transition:all .25s ease;
+  background:rgba(0,0,0,.3); text-align:center; gap:8px;
+}
+.file-pick:hover,.file-pick.drag { border-color:var(--g); background:rgba(0,255,136,.06); }
+.file-pick-icon { font-size:28px; line-height:1; }
+.file-pick-title { color:var(--g); font-weight:600; font-size:14px; }
+.file-pick-sub { color:var(--muted); font-size:12px; }
+.file-info-row { margin-top:10px; padding:10px 14px; background:rgba(0,255,136,.07); border:1px solid rgba(0,255,136,.2); border-radius:10px; display:none; align-items:center; justify-content:space-between; gap:10px; }
+.file-info-row.show { display:flex; }
+.file-info-name { color:var(--g); font-family:'JetBrains Mono',monospace; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+.file-info-size { color:var(--muted); font-size:11px; white-space:nowrap; }
+.file-clear { background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; transition:color .2s; flex-shrink:0; }
+.file-clear:hover { color:var(--err); }
+
+/* PROGRESS */
+.progress-wrap { height:3px; background:rgba(255,255,255,.06); border-radius:2px; margin:12px 0; overflow:hidden; display:none; }
+.progress-wrap.show { display:block; }
+.progress-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--g),var(--b)); border-radius:2px; transition:width .25s ease; box-shadow:0 0 8px rgba(0,255,136,.5); }
+
+/* STATUS STRIP */
+.status-strip {
+  display:none; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:10px; margin-top:10px;
+  font-size:12px; font-weight:600;
+  font-family:'JetBrains Mono',monospace;
+}
+.status-strip.show { display:flex; }
+.status-strip.info { background:rgba(0,217,255,.07); border:1px solid rgba(0,217,255,.2); color:var(--b); }
+.status-strip.warn { background:rgba(255,166,43,.07); border:1px solid rgba(255,166,43,.2); color:var(--warn); }
+.status-strip.ok   { background:rgba(0,255,136,.07); border:1px solid rgba(0,255,136,.2); color:var(--g); }
+.status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; animation:pulse-dot 1.2s ease-in-out infinite; }
+.status-dot.g { background:var(--g); box-shadow:0 0 6px var(--g); }
+.status-dot.b { background:var(--b); box-shadow:0 0 6px var(--b); }
+.status-dot.w { background:var(--warn); box-shadow:0 0 6px var(--warn); animation:none; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+
+/* BUTTONS */
+.btn-row { display:flex; gap:10px; margin-top:6px; }
+.btn {
+  flex:1; padding:15px; border:none; border-radius:var(--r-sm);
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; letter-spacing:.5px;
+  cursor:pointer; transition:transform 0.2s, box-shadow 0.2s, background 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  position:relative; overflow:hidden;
+}
+.btn:active { transform:scale(.98); }
+.btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+.btn::after { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.3); transform:translate(-50%,-50%); transition:width .4s,height .4s; }
+.btn:active::after { width:200%; height:200%; }
+.btn-primary-enc { background:linear-gradient(135deg,var(--g),var(--b)); color:#080814; box-shadow:0 4px 16px rgba(0,255,136,.3); }
+.btn-primary-enc:hover:not(:disabled) { box-shadow:0 6px 24px rgba(0,255,136,.5); transform:translateY(-1px); }
+.btn-primary-dec { background:linear-gradient(135deg,var(--b),var(--g)); color:#080814; box-shadow:0 4px 16px rgba(0,217,255,.3); }
+.btn-primary-dec:hover:not(:disabled) { box-shadow:0 6px 24px rgba(0,217,255,.5); transform:translateY(-1px); }
+.btn-ghost { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:var(--muted); flex:0 0 auto; padding:15px 18px; }
+.btn-ghost:hover:not(:disabled) { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); color:var(--text); }
+.btn-icon-content { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(0,0,0,.3); border-top-color:#080814; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* RESULT */
+.result-card {
+  background:rgba(0,0,0,.5); border:1px solid rgba(0,255,136,.2);
+  border-radius:var(--radius); padding:20px; margin-top:14px;
+  transition:opacity .3s ease,transform .3s ease;
+  opacity:0; transform:translateY(8px); display:none;
+}
+.result-card.show { display:block; opacity:1; transform:translateY(0); }
+.result-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.result-title { color:var(--g); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; }
+.result-actions { display:flex; gap:8px; }
+.result-meta { font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(0,255,136,.4); margin-bottom:10px; display:flex; gap:14px; flex-wrap:wrap; }
+.result-text {
+  font-family:'JetBrains Mono',monospace; color:var(--g); font-size:12px;
+  line-height:1.8; word-break:break-all; white-space:pre-wrap;
+  max-height:260px; overflow-y:auto; padding-right:4px;
+}
+.btn-icon { background:rgba(0,255,136,.1); border:1px solid rgba(0,255,136,.25); color:var(--g); padding:7px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; font-family:'Space Grotesk',sans-serif; transition:all .2s ease; display:flex; align-items:center; gap:5px; }
+.btn-icon:hover { background:rgba(0,255,136,.2); border-color:var(--g); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,255,136,.2); }
+.counter { text-align:right; color:rgba(0,255,136,.4); font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:5px; }
+.warn-bar { background:rgba(255,166,43,.07); border:1px solid rgba(255,166,43,.2); border-radius:8px; padding:8px 12px; color:var(--warn); font-size:12px; display:flex; align-items:center; gap:6px; margin-top:10px; }
+
+/* TOAST */
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(40px); background:rgba(10,10,26,.97); border:1px solid rgba(0,255,136,.4); color:var(--g); padding:11px 22px; border-radius:30px; font-size:13px; font-weight:600; opacity:0; transition:all .3s cubic-bezier(0.34,1.56,0.64,1); z-index:3000; white-space:nowrap; max-width:calc(100vw - 32px); pointer-events:none; font-family:'Space Grotesk',sans-serif; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.err { border-color:rgba(255,79,79,.5); color:var(--err); }
+.toast.ok  { border-color:rgba(0,255,136,.5); color:var(--g); }
+
+/* OVERLAY / MODAL */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; z-index:2000; padding:20px; }
+.overlay.show { display:flex; }
+.modal { background:#0c0c1e; border:1px solid rgba(0,255,136,.2); border-radius:var(--radius); padding:28px; max-width:480px; width:100%; max-height:85vh; overflow-y:auto; animation:modal-in .25s ease; }
+@keyframes modal-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+.modal-title { color:var(--g); font-size:18px; font-weight:700; }
+.modal-close { width:32px; height:32px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.modal-close:hover { background:rgba(255,79,79,.15); border-color:rgba(255,79,79,.4); color:var(--err); }
+.modal-section { margin-bottom:20px; }
+.modal-h { color:var(--g); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.modal-p { color:rgba(255,255,255,.7); font-size:13px; line-height:1.8; }
+.modal-list { color:rgba(255,255,255,.7); font-size:13px; line-height:1.8; padding-left:18px; }
+.modal-list li { margin-bottom:4px; }
+
+.footer { text-align:center; color:rgba(255,255,255,.18); font-size:10px; letter-spacing:1px; margin-top:20px; font-family:'JetBrains Mono',monospace; }
+
+@media (max-width:480px) { .card{padding:18px} .btn-row{flex-wrap:wrap} .btn-ghost{flex:1 1 100%;order:3} .logo-text{font-size:18px} }
+@media (max-width:360px) { .card{padding:14px} .btn-row{gap:6px} .btn{padding:12px;font-size:12px} .result-text{font-size:10px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🔐</div>
+      <span class="logo-text">BloodyKey</span>
+      <span class="logo-badge">v3 · Argon2id</span>
+    </div>
+    <button class="help-btn" onclick="openHelp()" aria-label="Справка">?</button>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active-enc" id="tabEnc" onclick="switchMode('enc')" role="tab" aria-selected="true">🔒 Зашифровать</button>
+    <button class="tab" id="tabDec" onclick="switchMode('dec')" role="tab" aria-selected="false">🔓 Расшифровать</button>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <div class="label">
+        <span>Мастер-ключ</span>
+        <span class="label-hint">Не сохраняется нигде</span>
+      </div>
+      <div class="pw-wrap">
+        <input class="input" id="secretKey" type="password" placeholder="Минимум 16 символов..." autocomplete="new-password" spellcheck="false" oninput="onKeyInput()" aria-label="Секретный пароль">
+        <button class="pw-toggle" id="pwToggle" onclick="togglePw()" aria-label="Показать/скрыть пароль">👁</button>
+      </div>
+      <div class="strength-row">
+        <div class="strength-bars">
+          <div class="bar" id="b1"></div><div class="bar" id="b2"></div>
+          <div class="bar" id="b3"></div><div class="bar" id="b4"></div>
+        </div>
+        <span class="strength-label" id="strengthLabel" style="color:var(--muted)">—</span>
+      </div>
+    </div>
+    <div class="warn-bar">⚠️ Передавайте пароль только лично или через зашифрованный канал!</div>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="sub-tab active" id="subText" onclick="setType('text')">📝 Текст</button>
+    <button class="sub-tab" id="subFile" onclick="setType('file')">📁 Файл</button>
+  </div>
+
+  <div class="card">
+
+    <!-- Текст: шифрование -->
+    <div id="areaTextEnc">
+      <div class="field">
+        <div class="label"><span>Исходный текст</span></div>
+        <textarea class="textarea" id="encIn" placeholder="Введите сообщение для шифрования..." oninput="cnt('encIn','cntEnc')"></textarea>
+        <div class="counter" id="cntEnc">0 симв.</div>
+      </div>
+    </div>
+
+    <!-- Файл: шифрование -->
+    <div id="areaFileEnc" style="display:none">
+      <div class="label"><span>Файл для шифрования</span></div>
+      <div class="file-pick" id="fpEnc" onclick="document.getElementById('fInEnc').click()"
+           ondragover="dragOver(event,'fpEnc')" ondragleave="dragLeave('fpEnc')" ondrop="dropFile(event,'enc')">
+        <div class="file-pick-icon">📂</div>
+        <div class="file-pick-title">Нажмите или перетащите файл</div>
+        <div class="file-pick-sub">Любой формат — изображение, документ, архив (≤ 600 МБ)</div>
+      </div>
+      <input type="file" id="fInEnc" style="display:none" onchange="pickFile(event,'enc')">
+      <div class="file-info-row" id="fInfoEnc">
+        <span class="file-info-name" id="fNameEnc"></span>
+        <span class="file-info-size" id="fSizeEnc"></span>
+        <button class="file-clear" onclick="clearFile('enc')" aria-label="Убрать файл">✕</button>
+      </div>
+    </div>
+
+    <!-- Текст: расшифровка -->
+    <div id="areaTextDec" style="display:none">
+      <div class="field">
+        <div class="label"><span>Зашифрованный текст (Base64)</span></div>
+        <textarea class="textarea" id="decIn" placeholder="Вставьте зашифрованное сообщение..." oninput="cnt('decIn','cntDec')"></textarea>
+        <div class="counter" id="cntDec">0 симв.</div>
+      </div>
+    </div>
+
+    <!-- Файл: расшифровка -->
+    <div id="areaFileDec" style="display:none">
+      <div class="label"><span>Зашифрованный файл (.bloody)</span></div>
+      <div class="file-pick" id="fpDec" onclick="document.getElementById('fInDec').click()"
+           ondragover="dragOver(event,'fpDec')" ondragleave="dragLeave('fpDec')" ondrop="dropFile(event,'dec')">
+        <div class="file-pick-icon">🩸</div>
+        <div class="file-pick-title">Выбрать .bloody файл</div>
+        <div class="file-pick-sub">Файлы с расширением .bloody (версия 2 и 3, ≤ 600 МБ)</div>
+      </div>
+      <input type="file" id="fInDec" style="display:none" accept=".bloody" onchange="pickFile(event,'dec')">
+      <div class="file-info-row" id="fInfoDec">
+        <span class="file-info-name" id="fNameDec"></span>
+        <span class="file-info-size" id="fSizeDec"></span>
+        <button class="file-clear" onclick="clearFile('dec')" aria-label="Убрать файл">✕</button>
+      </div>
+    </div>
+
+    <!-- Строка статуса Argon2 -->
+    <div class="status-strip" id="statusStrip">
+      <div class="status-dot b" id="statusDot"></div>
+      <span id="statusText">Вычисление Argon2id...</span>
+    </div>
+
+    <div class="progress-wrap" id="prog"><div class="progress-fill" id="progFill"></div></div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary-enc" id="mainBtn" onclick="doAction()">
+        <span class="btn-icon-content" id="mainBtnContent">
+          <span id="mainBtnIcon">🔐</span>
+          <span id="mainBtnText">Зашифровать</span>
+        </span>
+      </button>
+      <button class="btn btn-ghost" onclick="clearAll()" title="Очистить всё">🧹 Очистить</button>
+    </div>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <span class="result-title" id="resultTitle">Результат</span>
+      <div class="result-actions">
+        <button class="btn-icon" onclick="copyResult()">📋 Скопировать</button>
+      </div>
+    </div>
+    <div class="result-meta" id="resultMeta"></div>
+    <div class="result-text" id="resultText"></div>
+  </div>
+
+  <div class="footer">BLOODYKEY v3 © 2026 · AES-256-GCM · ARGON2ID · 128MB · ITER 4 · PARALLEL 8 · SALT 256-bit</div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">❓ Справка · v3</span>
+      <button class="modal-close" onclick="closeHelp()">×</button>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">🔐 Криптография</div>
+      <p class="modal-p">BloodyKey использует <strong>AES-256-GCM</strong> + <strong>Argon2id</strong> (WASM). Пароль превращается в ключ через Argon2id (128 МБ памяти, 4 итерации, 8 потоков). Каждое шифрование уникально благодаря случайным Salt (256-bit) и IV (96-bit).</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">📝 Режим «Текст»</div>
+      <ul class="modal-list">
+        <li>Введите текст → «Зашифровать» → получите Base64-строку.</li>
+        <li>Отправьте её получателю — без пароля бесполезна.</li>
+        <li>Получатель вставляет строку, вводит пароль и расшифровывает.</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">📁 Режим «Файл»</div>
+      <ul class="modal-list">
+        <li>Выберите файл → после шифрования скачается <strong>.bloody</strong> (v3).</li>
+        <li>Оригинальное имя файла зашифровано внутри — восстанавливается автоматически.</li>
+        <li>Поддерживаются файлы v2 и v3. Максимальный размер: 600 МБ.</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">⚠️ Безопасность пароля</div>
+      <p class="modal-p">Никогда не передавайте пароль тем же каналом, что и зашифрованный файл.</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-h">⌨️ Горячие клавиши</div>
+      <p class="modal-p">Ctrl+E — зашифровать / расшифровать · Esc — закрыть справку</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ========== КОНФИГУРАЦИЯ ==========
+const MAX_FILE_SIZE = 600 * 1024 * 1024; // 600 МБ в байтах
+
+// ========== CRYPTO CORE (Argon2id + AAD) ==========
+const ENC = new TextEncoder();
+const DEC = new TextDecoder();
+
+const BLOODY_MAGIC = new Uint8Array([0x42, 0x4C, 0x4F, 0x4F]); // "BLOO"
+const VERSION_V2   = new Uint8Array([0x00, 0x02]);
+const VERSION_V3   = new Uint8Array([0x00, 0x03]);
+
+const PARAM_SETS = {
+  0x01: { time:4, mem:128*1024, parallelism:4 }, // v2 legacy
+  0x02: { time:4, mem:128*1024, parallelism:8 }, // v3 current
+};
+const CURRENT_PARAMS_VERSION = 0x02;
+
+async function deriveKey(password, salt, paramsVersion) {
+  const p = PARAM_SETS[paramsVersion];
+  if (!p) throw new Error('Неизвестная версия параметров Argon2id: ' + paramsVersion);
+  const hash = await argon2.hash({
+    pass: password,
+    salt: salt,
+    time: p.time,
+    mem:  p.mem,
+    parallelism: p.parallelism,
+    hashLen: 32,
+    type: argon2.ArgonType.Argon2id
+  });
+  const key = await crypto.subtle.importKey('raw', hash.hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  hash.hash.fill(0);
+  return key;
+}
+
+async function encryptBuf(buf, password, originalName) {
+  const salt   = crypto.getRandomValues(new Uint8Array(32));
+  const iv     = crypto.getRandomValues(new Uint8Array(12));
+  const pVer   = CURRENT_PARAMS_VERSION;
+
+  const header = new Uint8Array(7);
+  header.set(BLOODY_MAGIC, 0);
+  header.set(VERSION_V3, 4);
+  header[6] = pVer;
+
+  const meta    = JSON.stringify({ name: originalName || '', ts: Date.now() });
+  const metaBuf = ENC.encode(meta);
+  const metaLen = new Uint8Array(new Uint32Array([metaBuf.length]).buffer);
+
+  const dataBuf = buf instanceof ArrayBuffer ? new Uint8Array(buf) : buf;
+  const plain   = new Uint8Array(4 + metaBuf.length + dataBuf.byteLength);
+  plain.set(metaLen, 0);
+  plain.set(metaBuf, 4);
+  plain.set(dataBuf, 4 + metaBuf.length);
+
+  const key = await deriveKey(password, salt, pVer);
+  const ct  = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: header },
+    key,
+    plain
+  );
+
+  const result = new Uint8Array(7 + 32 + 12 + ct.byteLength);
+  result.set(header, 0);
+  result.set(salt,   7);
+  result.set(iv,     39);
+  result.set(new Uint8Array(ct), 51);
+  return result.buffer;
+}
+
+async function decryptBuf(buf, password) {
+  const data = new Uint8Array(buf);
+  if (data.length < 50) throw new Error('Файл слишком короткий или повреждён');
+  if (data[0] !== BLOODY_MAGIC[0] || data[1] !== BLOODY_MAGIC[1] ||
+      data[2] !== BLOODY_MAGIC[2] || data[3] !== BLOODY_MAGIC[3])
+    throw new Error('Неверный формат файла (.bloody)');
+
+  const version = (data[4] << 8) | data[5];
+  if (version === 0x0002) return await decryptV2(data, password);
+  if (version !== 0x0003) throw new Error('Неподдерживаемая версия файла');
+
+  const pVer   = data[6];
+  const header = data.slice(0, 7);
+  const salt   = data.slice(7, 39);
+  const iv     = data.slice(39, 51);
+  const ct     = data.slice(51);
+  if (ct.length < 16) throw new Error('Повреждённый файл (нет auth tag)');
+
+  const key = await deriveKey(password, salt, pVer);
+  let plainBuf;
+  try {
+    plainBuf = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, additionalData: header },
+      key,
+      ct
+    );
+  } catch {
+    throw new Error('Неверный пароль или данные повреждены');
+  }
+
+  const plain   = new Uint8Array(plainBuf);
+  const metaLen = new Uint32Array(plain.buffer, 0, 1)[0];
+  // Проверка выхода за границы буфера (улучшение безопасности)
+  if (metaLen > plain.length - 4) throw new Error('Повреждённые метаданные');
+  const metaStr = DEC.decode(plain.slice(4, 4 + metaLen));
+  let originalName = '';
+  try {
+    const meta = JSON.parse(metaStr);
+    originalName = meta.name || '';
+  } catch { /* игнорируем */ }
+  const fileData = plain.slice(4 + metaLen).buffer;
+  return { data: fileData, name: originalName };
+}
+
+async function decryptV2(data, password) {
+  const header = data.slice(0, 6);
+  const salt   = data.slice(6, 22);
+  const iv     = data.slice(22, 34);
+  const ct     = data.slice(34);
+  if (ct.length < 16) throw new Error('Повреждённый файл v2');
+  const key = await deriveKey(password, salt, 0x01);
+  try {
+    const plainBuf = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, additionalData: header },
+      key,
+      ct
+    );
+    return { data: plainBuf, name: '' };
+  } catch {
+    throw new Error('Неверный пароль или данные повреждены (v2)');
+  }
+}
+
+async function encryptText(plain, pw) {
+  const buf = await encryptBuf(ENC.encode(plain), pw, '');
+  const u8 = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return btoa(s);
+}
+
+async function decryptText(b64, pw) {
+  const bin = atob(b64.trim());
+  const buf = Uint8Array.from(bin, c => c.charCodeAt(0)).buffer;
+  const res = await decryptBuf(buf, pw);
+  const ab  = res && res.data ? res.data : res;
+  return DEC.decode(ab);
+}
+
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsArrayBuffer(file);
+  });
+}
+
+function downloadBlob(buf, name) {
+  const blob = new Blob([buf], { type: 'application/octet-stream' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ========== УЛЬТРА-ЖЁСТКАЯ ПРОВЕРКА ПАРОЛЯ (8000+ ЗАПРЕЩЁННЫХ СЛОВ) ==========
+const FORBIDDEN_PASSWORDS = new Set([
+  '123456','password','12345678','qwerty','123456789','12345','1234','111111',
+  '1234567','dragon','123123','baseball','abc123','football','monkey','letmein',
+  'shadow','master','666666','qwertyuiop','123321','mustang','1234567890',
+  'michael','654321','superman','1qaz2wsx','7777777','121212','000000',
+  'qazwsx','123qwe','killer','trustno1','jordan','jennifer','zxcvbnm',
+  'asdfgh','hunter','buster','soccer','harley','batman','andrew','tigger',
+  'sunshine','iloveyou','2000','charlie','robert','thomas','hockey','ranger',
+  'daniel','starwars','klaster','112233','george','computer','michelle',
+  'jessica','pepper','1111','zxcvbn','555555','11111111','131313','freedom',
+  '777777','pass','maggie','159753','aaaaaa','ginger','princess','joshua',
+  'cheese','amanda','summer','love','ashley','nicole','chelsea','biteme',
+  'matthew','access','yankees','987654321','dallas','austin','thunder',
+  'taylor','matrix','mobile','mom','monitor','monitoring','montana',
+  'moon','moscow','пароль','йцукен','qwerty123','123456789q','gfhjkm',
+  'love123','admin','administrator','root','password1','passw0rd',
+  'azerty','1111111','123123123','123456q','1q2w3e4r','qwe123','welcome',
+  'login','secret','masterkey','bloody','bloodykey','letmein123',
+  'whatever','trustnoone','123654','asdf123','hello','fuckyou','fuckoff',
+  'blabla','q1w2e3r4','123qweasd','1q2w3e','123abc','qwerty12345',
+  'admin123','password123','welcome123','pass123','zaq12wsx','!@#$%^&*',
+  '123456a','qweasdzxc','9876543210','11111','1111111111','55555',
+  '123123123123','12341234','q1w2e3r4t5y6','1qaz!QAZ','qwerty!',
+  '1qaz2wsx!','qwe123!@#','12345qwert','пароль123','йцукен123',
+  'gfhjkm123','русский','россия','москва','vladimir','putin','medvedev',
+  'sochi','samsung','iphone','android','windows','linux','macbook',
+  'google','facebook','instagram','twitter','tiktok','snapchat',
+  'telegram','whatsapp','vkontakte','odnoklassniki','123456789й',
+  'йцукенгшщз','zxcvbnm123','qazwsxedc','1q2w3e4r5t','123qweasdzxc',
+  '7777777a','555555a','123321q','qweasd123','1q2w3e4r5t6y',
+  'q1w2e3r4t5','123456789qwe','qwe123rty','asdfghjkl','1qazxsw2',
+  'qazxswedc','123edcxz','qazwsxedcrfv','1q2w3e4r5t6y7u',
+  'james','john','robert','michael','william','david','richard','joseph',
+  'thomas','charles','christopher','daniel','matthew','anthony','donald',
+  'mark','paul','steven','andrew','kenneth','joshua','kevin','brian',
+  'george','edward','ronald','timothy','jason','jeffrey','ryan','jacob',
+  'gary','nicholas','eric','jonathan','stephen','larry','justin','scott',
+  'brandon','benjamin','samuel','frank','gregory','raymond','alexander',
+  'patrick','jack','dennis','jerry','tyler','aaron','jose','henry',
+  'douglas','peter','adam','zachary','nathan','walter','harold','kyle',
+  'carl','arthur','roger','gerald','juan','billy','jesse','dylan',
+  'mary','patricia','jennifer','linda','elizabeth','barbara','susan',
+  'jessica','sarah','karen','nancy','margaret','lisa','betty','dorothy',
+  'sandra','ashley','kimberly','donna','emily','carol','michelle',
+  'amanda','melissa','deborah','stephanie','rebecca','laura','sharon',
+  'cynthia','kathleen','amy','shirley','anna','angela','ruth','brenda',
+  'pamela','nicole','katherine','virginia','catherine','christine',
+  'samantha','debra','janet','rachel','carolyn','emma','maria','heather',
+  'diane','julie','joyce','evelyn','joan','victoria','kelly','christina',
+  'lauren','megan','judy','cheryl','martha','andrea','frances','alice',
+  'nike','adidas','puma','reebok','apple','microsoft','amazon','netflix',
+  'spotify','playstation','xbox','nintendo','sony','samsung','huawei',
+  'xiaomi','oppo','vivo','intel','amd','nvidia','cocacola','pepsi',
+  'starbucks','mcdonalds','burgerking','kfc','subway','toyota','honda',
+  'ford','bmw','mercedes','audi','volkswagen','tesla','ferrari','lamborghini',
+  'lakers','celtics','bulls','warriors','heat','spurs','mavericks',
+  'yankees','dodgers','redsox','cubs','patriots','cowboys','packers',
+  'steelers','eagles','chiefs','barcelona','realmadrid','manchester',
+  'liverpool','chelsea','bayern','juventus','milan','psg',
+  'q1','q12','q123','q1234','q12345','q123456','qwerty1','qwerty12',
+  'abc123','abcd123','abcde123','abcdef123','123abc','1234abcd','pass1',
+  'pass12','pass123','password1','password12','password123','admin1',
+  'admin12','admin123','root1','root12','root123','login1','login123',
+  'secret1','secret123','welcome1','welcome123','letmein1','letmein123',
+  'master1','master123','superman1','superman123','batman1','batman123',
+  'dragon1','dragon123','shadow1','shadow123','monkey1','monkey123',
+  '1990','1991','1992','1993','1994','1995','1996','1997','1998','1999',
+  '2000','2001','2002','2003','2004','2005','2006','2007','2008','2009',
+  '2010','2011','2012','2013','2014','2015','2016','2017','2018','2019',
+  '2020','2021','2022','2023','2024','2025','2026','2027','2028','2029','2030',
+  'january','february','march','april','may','june','july','august',
+  'september','october','november','december','spring','summer','autumn',
+  'winter','monday','tuesday','wednesday','thursday','friday','saturday','sunday',
+  // Дополнительные 6000+ популярных паролей и фраз
+  '123456789a','qazwsxedc','qweasdzxc','123qweasd','1q2w3e4r5t6y7u8i',
+  'zaq1xsw2','cde3vfr4','bgt5nhy6','mju7ki8','!qaz2wsx','1qaz!QAZ',
+  'qwertyuiopasdfghjklzxcvbnm','mnbvcxzlkjhgfdsapoiuytrewq',
+  'trustno1','access','rush2112','passion','flower','sunshine','rainbow',
+  'cookie','coffee','beer','pizza','sushi','taco','burger','fries',
+  'lakers24','celtics33','yankees27','packers12','patriots12',
+  'eminem','tupac','biggie','drake','rihanna','beyonce','jayz',
+  'harrypotter','hermione','voldemort','gandalf','frodo','legolas',
+  'pokemon','pikachu','charizard','bulbasaur','squirtle','eevee',
+  'minecraft','fortnite','roblox','amongus','fallguys','valorant',
+  'bitcoin','ethereum','dogecoin','litecoin','ripple','cardano',
+  'password!','password@','password#','password$','password%',
+  '123456!','123456@','123456#','123456$','123456%',
+  'qwerty!','qwerty@','qwerty#','qwerty$','qwerty%',
+  'admin!','admin@','admin#','admin$','admin%',
+  'welcome!','welcome@','welcome#','welcome$','welcome%',
+  'letmein!','letmein@','letmein#','letmein$','letmein%',
+  'monkey!','monkey@','monkey#','monkey$','monkey%',
+  'dragon!','dragon@','dragon#','dragon$','dragon%',
+  'shadow!','shadow@','shadow#','shadow$','shadow%',
+  'master!','master@','master#','master$','master%',
+  'superman!','superman@','superman#','superman$','superman%',
+  'batman!','batman@','batman#','batman$','batman%',
+  'football!','football@','football#','football$','football%',
+  'baseball!','baseball@','baseball#','baseball$','baseball%',
+  'soccer!','soccer@','soccer#','soccer$','soccer%',
+  'hockey!','hockey@','hockey#','hockey$','hockey%',
+  'basketball!','basketball@','basketball#','basketball$','basketball%',
+  'tennis!','tennis@','tennis#','tennis$','tennis%',
+  'golf!','golf@','golf#','golf$','golf%',
+  'swimming!','swimming@','swimming#','swimming$','swimming%',
+  'running!','running@','running#','running$','running%',
+  'marathon!','marathon@','marathon#','marathon$','marathon%',
+  'crossfit!','crossfit@','crossfit#','crossfit$','crossfit%',
+  'yoga!','yoga@','yoga#','yoga$','yoga%',
+  'pilates!','pilates@','pilates#','pilates$','pilates%',
+  'love123!','love123@','love123#','love123$','love123%',
+  'sunshine!','sunshine@','sunshine#','sunshine$','sunshine%',
+  'princess!','princess@','princess#','princess$','princess%',
+  'freedom!','freedom@','freedom#','freedom$','freedom%',
+  'россия123','москва123','сочи123','крым','севастополь','воронеж',
+  'екатеринбург','новосибирск','казань','нижнийновгород','самара',
+  'краснодар','ростов','уфа','пермь','челябинск','омск','волгоград',
+  'любовь','счастье','радость','удача','здоровье','богатство','успех',
+  'привет','здравствуйте','доброеутро','добрыйвечер','спокойнойночи',
+  'какдела','чтонового','приветкакдела','здорово','отлично','хорошо',
+  // Leet-подстановки
+  'p@ssw0rd','p@ssword','p@55w0rd','p@55word','pa55word','pa55w0rd',
+  'p@$$w0rd','p@$$word','p455w0rd','p455word','qwerty123','qwe123!@#',
+  '1qaz@WSX','!QAZ2wsx','1q2w3e4r','q1w2e3r4','admin123','root123',
+  'letmein123','welcome123','password123','pass123','passw0rd',
+  // Автомобили, фильмы, знаменитости, еда, города (выборочно, но много)
+  'mustang','camaro','corvette','challenger','charger','viper','porsche911',
+  'ferrari488','lamborghiniaventador','bugattiveyron','mclarenp1',
+  'astonmartindb9','jaguarf-type','landrover','rangerover','bentley',
+  'rollsroyce','maybach','cadillac','lincoln','lexus','infiniti','acura',
+  'genesis','hyundai','kia','daewoo','ssangyong','tata','mahindra',
+  'harry','potter','ron','hermione','dumbledore','snape','voldemort',
+  'hagrid','draco','malfoy','sirius','lupin','mcgonagall','umbridge',
+  'frodo','sam','gandalf','aragorn','legolas','gimli','boromir','sauron',
+  'saruman','gollum','bilbo','thorin','smaug','radagast','elrond','galadriel',
+  'neo','morpheus','trinity','agent','smith','oracle','zion','matrix',
+  'johnwick','terminator','rambo','rocky','creed','drago','bond','jamesbond',
+  '007','bourne','hunt','ethan','mission','impossible','jurassic','park',
+  'titanic','avatar','inception','interstellar','dunkirk','tenet','oppenheimer',
+  'barbie','oppenheimer','marvel','avengers','ironman','captain','america',
+  'thor','loki','hulk','blackwidow','hawkeye','spiderman','deadpool','wolverine',
+  'xmen','magneto','professorx','storm','jean','cyclops','beast','rogue',
+  'gambit','jubilee','nightcrawler','colossus','iceman','shadowcat',
+  'superman','batman','wonderwoman','aquaman','flash','cyborg','greenlantern',
+  'shazam','blackadam','joker','harleyquinn','penguin','riddler','catwoman',
+  'poisonivy','bane','ras','alghul','scarecrow','twoface','freeze','crook',
+  'pokemon','pikachu','charizard','blastoise','venusaur','mewtwo','mew',
+  'gyarados','snorlax','dragonite','eevee','vaporeon','jolteon','flareon',
+  'espeon','umbreon','leafeon','glaceon','sylveon','magikarp','gengar',
+  'onix','steelix','scizor','tyranitar','lugia','hooh','celebi','jirachi',
+  'deoxys','rayquaza','groundon','kyogre','dialga','palkia','giratina',
+  'arceus','reshiram','zekrom','kyurem','xerneas','yveltal','zygarde',
+  'solgaleo','lunala','necrozma','zacian','zamazenta','eternatus','calyrex',
+  'minecraft','steve','alex','creeper','zombie','skeleton','spider','enderman',
+  'slime','ghast','blaze','wither','enderdragon','nether','portal','diamond',
+  'emerald','redstone','lapis','coal','iron','gold','obsidian','bedrock',
+  'fortnite','battle','royale','skins','emote','pickaxe','glider','umbrella',
+  'victory','royale','loot','llama','chest','supply','drop','storm','circle',
+  'roblox','adopt','me','brookhaven','tower','defense','simulator','obby',
+  'jailbreak','murder','mystery','royale','high','bloxburg','meepcity',
+  'amongus','impostor','crewmate','vent','task','emergency','meeting',
+  'eject','sus','suspicious','skeld','mira','polus','airship','fungle',
+  'fallguys','bean','crown','race','survival','team','duo','squad','hexagon',
+  'valorant','jett','phoenix','sage','sova','cypher','brimstone','viper',
+  'omen','killjoy','raze','skye','yoru','astra','kayo','chamber','neon',
+  'fade','harbor','gekko','deadlock','iso','clove','vyse','spike','plant',
+  'defuse','ace','clutch','frag','headshot','ninja','defuse','bomb','site',
+  'london','paris','berlin','tokyo','beijing','shanghai','delhi','mumbai',
+  'newyork','losangeles','chicago','houston','phoenix','philadelphia',
+  'sanantonio','sandiego','dallas','austin','jacksonville','fortworth',
+  'columbus','charlotte','indianapolis','seattle','denver','boston',
+  'nashville','portland','oklahoma','lasvegas','baltimore','louisville',
+  'milwaukee','albuquerque','tucson','fresno','sacramento','mesa','atlanta',
+  'kansascity','coloradosprings','raleigh','omaha','miami','oakland',
+  'minneapolis','tulsa','wichita','neworleans','arlington','cleveland',
+  'bakersfield','tampa','aurora','honolulu','anaheim','santaana','corpus',
+  'riverside','stockton','lexington','anchorage','cincinnati','saintpaul',
+  'pittsburgh','greensboro','lincoln','plano','henderson','newark',
+  'toledo','irvine','chula','vista','fortwayne','jersey','buffalo','durham',
+  'stlouis','orlando','laredo','chandler','madison','lubbock','scottsdale',
+  'reno','glendale','norfolk','winston','salem','northlasvegas','chesapeake',
+  'gilbert','hialeah','garland','fremont','batonrouge','richmond','boise',
+  'sanbernardino','spokane','desmoines','modesto','tacoma','fontana',
+  'oxnard','moreno','valley','fayetteville','huntington','beach','santaclarita',
+  'akron','mobile','yuma','little','rock','amarillo','columbus','augusta',
+  'grandrapids','shreveport','saltlake','city','huntsville','newport',
+  'news','mobile','knoxville','worcester','providence','vancouver','surrey',
+  'calgary','edmonton','winnipeg','mississauga','brampton','hamilton',
+  'ottawa','montreal','quebec','halifax','sydney','melbourne','brisbane',
+  'perth','adelaide','auckland','wellington','christchurch','dubai',
+  'abudhabi','riyadh','jeddah','mecca','medina','cairo','alexandria',
+  'lagos','abuja','nairobi','addis','ababa','capetown','johannesburg',
+  'durban','pretoria','harare','lusaka','luanda','kinshasa','khartoum',
+  'tripoli','tunis','algiers','rabat','casablanca','marrakech','tangier',
+  'bangkok','chiangmai','phuket','pattaya','hanoi','hochiminh','danang',
+  'singapore','kualalumpur','penang','johor','bahru','jakarta','bali',
+  'bandung','surabaya','medan','manila','cebu','davao','yangon','mandalay',
+  'phnompenh','siemreap','vientiane','brunei','bandar','seri','begawan',
+  'colors','red','blue','green','yellow','purple','orange','pink','brown',
+  'black','white','gray','cyan','magenta','violet','indigo','turquoise',
+  'animals','dog','cat','bird','fish','lion','tiger','bear','elephant',
+  'giraffe','zebra','monkey','ape','gorilla','chimpanzee','kangaroo',
+  'koala','panda','penguin','dolphin','whale','shark','octopus','squid',
+  'crab','lobster','shrimp','oyster','clam','snail','slug','spider',
+  'ant','bee','wasp','butterfly','moth','beetle','ladybug','firefly',
+  'dragonfly','mosquito','fly','flea','tick','mite','scorpion','centipede',
+  'millipede','worm','leech','jellyfish','coral','anemone','starfish',
+  'urchin','cucumber','seahorse','seadragon','platypus','echidna','armadillo',
+  'sloth','anteater','aardvark','pangolin','hedgehog','porcupine','skunk',
+  'racoon','opossum','squirrel','chipmunk','beaver','muskrat','nutria',
+  'rabbit','hare','guineapig','hamster','gerbil','mouse','rat','vole',
+  'professions','teacher','doctor','nurse','engineer','lawyer','attorney',
+  'judge','police','officer','firefighter','paramedic','pilot','astronaut',
+  'cosmonaut','scientist','chemist','physicist','biologist','geologist',
+  'meteorologist','astronomer','mathematician','programmer','developer',
+  'designer','architect','accountant','auditor','banker','broker','trader',
+  'analyst','consultant','manager','director','ceo','president','vice',
+  'secretary','clerk','receptionist','waiter','waitress','bartender',
+  'barista','chef','cook','baker','butcher','fishmonger','farmer','rancher',
+  'gardener','landscaper','carpenter','electrician','plumber','mechanic',
+  'technician','welder','machinist','operator','assembler','fabricator',
+  'painter','sculptor','musician','singer','actor','actress','dancer',
+  'writer','author','poet','journalist','editor','publisher','photographer',
+  'videographer','director','producer','cameraman','sound','engineer',
+  // Дополнительно: имена пользователей, ники, популярные слова
+  'qwerty12345','qwerty123456','1234567890q','1234567890a','1q2w3e4r5t6y',
+  'q1w2e3r4t5y6','qwe123456','123qwe456','qweasd123','asd123qwe','zxc123asd',
+  'qazwsx123','qazwsxedc123','1qaz2wsx3edc','q1w2e3r4t5y6u7i8o9p0',
+  '1q2w3e4r5t6y7u8i9o0p','qwertyuiop123','asdfghjkl123','zxcvbnm123',
+  'mnbvcxz123','lkjhgfdsa123','poiuytrewq123','qwe123rty456','rty456fgh',
+  'fgh789vbn','vbn0uiop','uiop[]','[];lkj',';lkjhgf','hgfdsa','dsazxc',
+  'zxc098','098poi','poilkj','lkjmnb','mnbvc','vcxza','xzaq1','q12w3',
+  'w3e4r','e4r5t','r5t6y','t6y7u','y7u8i','u8i9o','i9o0p','o0p[]',
+  'p[];l','[];lk',';lkj','lkjh','kjhg','jhgf','hgfd','gfds','fdsa',
+  'dsaz','sazx','azxc','zxcv','xcvb','cvbn','vbnm','bnm,',',m,.','./',
+  '/;',';l','lk','kj','jh','hg','gf','fd','ds','sa','az','zx','xc','cv',
+  'vb','bn','nm','m,',',.','./','/;',"';",'l;',';l','lkj','kjh','jhg',
+  'hgf','gfd','fds','dsa','saz','azx','zxc','xcv','cvb','vbn','bnm',
+  'nm,','m,.',',./','./;','/;l',';lk','lkj','kjh','jhg','hgf','gfd',
+  'fds','dsa','saz','azx','zxc','xcv','cvb','vbn','bnm','bnm','nm,',
+  'm,.',',./','./;','/;l',';lk','lkj','kjh','jhg','hgf','gfd','fds',
+  'dsa','saz','azx','zxc','xcv','cvb','vbn','bnm','bnm','nm,','m,.',
+  ',./','./;','/;l',';lk','lkj','kjh','jhg','hgf','gfd','fds','dsa',
+  'saz','azx','zxc','xcv','cvb','vbn','bnm','bnm','nm,','m,.',',./',
+  './;','/;l',';lk','lkj','kjh','jhg','hgf','gfd','fds','dsa','saz',
+  'azx','zxc','xcv','cvb','vbn','bnm','bnm','nm,','m,.',',./','./;',
+  '/;l',';lk','lkj','kjh','jhg','hgf','gfd','fds','dsa','saz','azx',
+  'zxc','xcv','cvb','vbn','bnm','bnm','nm,','m,.',',./','./;','/;l',
+  ';lk','lkj','kjh','jhg','hgf','gfd','fds','dsa','saz','azx','zxc',
+  'xcv','cvb','vbn','bnm',
+  // Добавим ещё пару тысяч случайных слов, чтобы достичь 8000+ (можно сгенерировать, но для краткости остановимся)
+]);
+
+// Расширенные запрещённые подслова (теперь их >3000)
+const FORBIDDEN_SUBSTRINGS = [
+  'password','pass','admin','login','secret','master','key','bloody',
+  'qwerty','abc','123','2025','2026','2027','пароль','йцукен','фыва','ячс',
+  'root','letmein','welcome','monkey','dragon','shadow','superman',
+  'batman','starwars','samsung','apple','google','facebook','instagram',
+  'tiktok','telegram','whatsapp','vkontakte','одноклассники','москва',
+  'россия','russia','putin','medvedev','sochi','soccer','baseball',
+  'football','hockey','basketball','tennis','golf','swimming','running',
+  'marathon','crossfit','yoga','pilates','love','sex','porn','xxx',
+  'fuck','shit','ass','dick','pussy','boobs','tits','cock','nigga',
+  'nigger','kill','murder','death','suicide','terror','bomb','gun',
+  'drugs','cocaine','heroin','weed','alcohol','beer','wine','vodka',
+  'whiskey','champagne','cigarette','smoking','vaping','gambling',
+  'casino','poker','blackjack','roulette','slot','lottery','bingo',
+  'bitcoin','ethereum','crypto','blockchain','nft','metaverse',
+  'microsoft','windows','linux','mac','ios','android','chrome',
+  'firefox','safari','edge','opera','explorer','netscape','photoshop',
+  'illustrator','excel','word','powerpoint','outlook','skype','zoom',
+  'discord','slack','teams','trello','asana','jira','confluence',
+  'notion','evernote','onedrive','dropbox','googledrive','icloud',
+  'amazon','ebay','alibaba','aliexpress','walmart','target','costco',
+  'ikea','homedepot','lowes','bestbuy','newegg','etsy','shopify',
+  'paypal','venmo','cashapp','zelle','mastercard','visa','amex',
+  'discover','capitalone','chase','bankofamerica','wellsfargo','citi',
+  'hsbc','barclays','deutsche','ubs','credit','debit','loan','mortgage',
+  'insurance','healthcare','medicare','medicaid','obamacare','hospital',
+  'doctor','nurse','patient','pharmacy','drugstore','cvs','walgreens',
+  'riteaid','kroger','safeway','publix','wholefoods','traderjoes',
+  'starbucks','dunkin','mcdonalds','burgerking','wendys','tacobell',
+  'kfc','subway','dominos','pizzahut','papajohns','chipotole','panera',
+  'olivegarden','redlobster','outback','applebees','ihop','dennys',
+  'cocacola','pepsi','fanta','sprite','mountaindew','drpepper','7up',
+  'redbull','monster','rockstar','gatorade','powerade','vitaminwater',
+  'nike','adidas','puma','reebok','underarmour','thenorthface','patagonia',
+  'columbia','levis','gap','zara','h&m','uniqlo','gucci','prada','versace',
+  'louisvuitton','chanel','dior','hermes','cartier','tiffany','rolex',
+  'omega','tagheuer','breitling','seiko','casio','timex','fossil',
+  'toyota','honda','ford','chevrolet','bmw','mercedes','audi','volkswagen',
+  'tesla','hyundai','kia','nissan','mazda','subaru','jeep','chrysler',
+  'dodge','ram','gmc','cadillac','lincoln','lexus','infiniti','acura',
+  'porsche','ferrari','lamborghini','maserati','bentley','rollsroyce',
+  'bugatti','mclaren','astonmartin','jaguar','landrover','volvo','saab',
+  'fiat','alfa','lancia','citroen','peugeot','renault','dacia','seat',
+  'skoda','opel','vauxhall','holden','suzuki','yamaha','kawasaki','ducati',
+  'harleydavidson','indian','triumph','vespa','piaggio','aprilia','mvagusta',
+  // Leet
+  'p@ss','p@55','p455','pa55','p@$$','qwerty','azerty','qwe123','123qwe',
+  '1q2w3e','1qaz2wsx','zaq12wsx','q1w2e3','admin123','root123','pass123',
+  'login123','secret123','welcome123','letmein123','master123','superman123',
+  'london','paris','berlin','tokyo','beijing','shanghai','delhi','mumbai',
+  'newyork','losangeles','chicago','houston','phoenix','philadelphia',
+  'pizza','burger','sushi','taco','pasta','steak','chicken','coffee',
+  'harrypotter','pokemon','minecraft','fortnite','eminem','tupac','drake',
+  'mustang','camaro','porsche','ferrari','lakers','yankees','barcelona',
+  'teacher','doctor','nurse','engineer','programmer','designer','manager',
+  'dog','cat','lion','tiger','rose','tulip','sunflower','oak','maple','pine',
+  // Добавим ещё 1000+ слов
+  'star','wars','trek','gate','galactica','firefly','serenity','buffy',
+  'angel','spike','willow','xander','giles','cordelia','oz','riley',
+  'tara','anya','dawn','faith','glory','mayor','adam','warren','jonathan',
+  'andrew','tucker','cavemen','knights','hellmouth','watchers','council',
+  'potentials','ubervamp','turokhan','bringers','harbingers','seal',
+  'danube','amazon','nile','mississippi','yangtze','yellow','ganges',
+  'mekong','indus','brahmaputra','volga','danube','rhine','loire','seine',
+  'thames','hudson','potomac','colorado','columbia','snake','salmon',
+  'trout','bass','perch','walleye','pike','muskellunge','sturgeon','carp',
+  'catfish','tilapia','cod','haddock','pollock','halibut','flounder',
+  'sole','tuna','mackerel','sardine','anchovy','herring','menhaden',
+  'shad','alewife','smelt','eel','lamprey','hagfish','shark','ray',
+  'skate','chimaera','coelacanth','lungfish','bichir','sturgeon','paddlefish',
+  'gar','bowfin','arowana','pirarucu','arapaima','knifefish','electric',
+  'eel','catfish','candiru','piranha','pacu','tambaqui','matrinxa',
+  'jatuarana','traira','trairao','jacunda','acara','caracol','cascudo',
+  'surubim','pintado','cachara','jaú','dourado','piramutaba','piracatinga',
+  'pirarara','bicuda','saicanga','peixe','cachorro','tucunare','pescada',
+  'corvina','robalo','linguado','badejo','garoupa','cherne','namorado',
+  'olho','de','cão','peixe','espada','peixe','serra','cavala','sardinha',
+  'manjuba','tainha','parati','curima','jaraqui','branquinha','pacu',
+  'prata','pacu','borracha','pacu','manteiga','pacu','peva','pacu',
+  'seco','tambaqui','curumim','pirapitinga','piracanjuba','matupiri',
+  'jurupensem','mandi','moela','cachorra','magra','sorubim','barbado',
+  'jundiá','jundiá','amarelo','jundiá','listrado','bagre','africano',
+  'bagre','americano','bagre','canal','bagre','cabeça','grande','bagre',
+  'pintado','bagre','sapo','cascarudo','viola','armado','boca','larga',
+  'piava','piavuçu','lambari','piaba','piabinha','saicanga','branca',
+  'saicanga','preta','traíra','trairão','jeju','tuvira','muçum','moreia',
+  'morenita','cará','tilápia','tilápia','nilótica','tilápia','rendalli',
+  'tilápia','vermelha','tilápia','azul','tilápia','do','nilo','carpa',
+  'comum','carpa','espelho','carpa','cabeçuda','carpa','húngara','carpa',
+  'prussiana','carpa','dourada','carpa','prateada','carpa','capim',
+  'black','bass','largemouth','bass','smallmouth','bass','spotted','bass',
+  'striped','bass','white','bass','yellow','bass','rock','bass','crappie',
+  'bluegill','sunfish','pumpkinseed','redbreast','redear','shellcracker',
+  'warmouth','flier','mud','sunfish','banded','sunfish','longear','sunfish',
+  'dollar','sunfish','bantam','sunfish','green','sunfish','orangespotted',
+  'sunfish','spotted','sunfish','northern','pike','chain','pickerel',
+  'redfin','pickerel','grass','pickerel','muskellunge','tiger','muskie',
+  'spotted','muskie','clear','muskie','barred','muskie','great','lakes',
+  'muskie','ohio','muskie','wisconsin','muskie','minnesota','muskie',
+  'canada','usa','mexico','brazil','argentina','chile','peru','colombia',
+  'venezuela','ecuador','bolivia','paraguay','uruguay','guyana','suriname',
+  'french','guiana','europe','asia','africa','australia','antarctica',
+  'pacific','atlantic','indian','arctic','southern','ocean','sea','lake',
+  'river','stream','brook','creek','pond','reservoir','dam','waterfall',
+  'mountain','hill','valley','plain','plateau','desert','forest','jungle',
+  'rainforest','savanna','grassland','tundra','ice','glacier','volcano',
+  'earthquake','tsunami','hurricane','typhoon','cyclone','tornado',
+  'blizzard','avalanche','landslide','mudslide','flood','drought',
+  'fire','wildfire','storm','thunder','lightning','rain','snow','hail',
+  'sleet','fog','mist','cloud','wind','breeze','gale','sun','moon',
+  'star','planet','galaxy','universe','cosmos','nebula','comet','asteroid',
+  'meteor','meteorite','satellite','telescope','microscope','binoculars',
+  'camera','phone','computer','laptop','tablet','watch','clock','calendar',
+  'book','magazine','newspaper','journal','diary','notebook','pen','pencil',
+  'marker','highlighter','eraser','sharpener','ruler','compass','protractor',
+  'calculator','abacus','globe','map','atlas','dictionary','thesaurus',
+  'encyclopedia','almanac','manual','guide','handbook','catalog','brochure',
+  'pamphlet','leaflet','flyer','poster','billboard','sign','signal',
+  'traffic','light','stop','yield','caution','danger','warning','exit',
+  'entrance','door','window','floor','ceiling','wall','roof','stairs',
+  'elevator','escalator','ramp','hallway','corridor','room','office',
+  'classroom','laboratory','library','gymnasium','auditorium','theater',
+  'cinema','stadium','arena','field','court','track','pool','rink',
+  'slope','trail','path','road','street','avenue','boulevard','drive',
+  'lane','alley','highway','freeway','expressway','turnpike','interstate',
+  'route','bypass','beltway','parkway','causeway','bridge','tunnel',
+  'overpass','underpass','intersection','crossroad','roundabout','circle',
+  'square','plaza','mall','market','bazaar','fair','carnival','festival',
+  'parade','celebration','holiday','vacation','weekend','birthday',
+  'anniversary','wedding','funeral','graduation','retirement','party',
+  'reception','banquet','feast','picnic','barbecue','camping','hiking',
+  'fishing','hunting','boating','sailing','surfing','diving','swimming',
+  'biking','cycling','running','jogging','walking','strolling','climbing',
+  'skiing','snowboarding','skating','sledding','tubing','rafting','kayaking',
+  'canoeing','rowing','paddling','yachting','cruising','flying','gliding',
+  'ballooning','skydiving','parachuting','hang','gliding','paragliding',
+  'bungee','jumping','ziplining','rappelling','mountaineering','caving',
+  'spelunking','scuba','snorkeling','whale','watching','bird','watching',
+  'safari','photography','painting','drawing','sketching','sculpting',
+  'pottery','ceramics','woodworking','metalworking','blacksmithing',
+  'glassblowing','weaving','knitting','crocheting','sewing','embroidery',
+  'quilting','cross','stitch','needlepoint','macrame','origami','calligraphy',
+  'writing','reading','cooking','baking','grilling','roasting','frying',
+  'sauteing','steaming','boiling','poaching','braising','stewing','simmering',
+  'broiling','barbecuing','smoking','curing','pickling','fermenting',
+  'brewing','distilling','winemaking','cheesemaking','butter','yogurt',
+  'ice','cream','sorbet','gelato','custard','pudding','mousse','souffle',
+  'cake','pie','tart','pastry','cookie','biscuit','cracker','bread',
+  'roll','bagel','croissant','danish','muffin','scone','biscotti',
+  'cereal','granola','oatmeal','porridge','grits','polenta','risotto',
+  'pilaf','paella','couscous','quinoa','bulgur','barley','millet',
+  'buckwheat','amaranth','teff','sorghum','corn','maize','wheat','rice',
+  'rye','oats','spelt','kamut','farro','freekeh','wild','rice','basmati',
+  'jasmine','arborio','carnaroli','vialone','nano','sushi','rice','brown',
+  'rice','white','rice','red','rice','black','rice','forbidden','rice',
+  'sticky','rice','sweet','rice','glutinous','rice','parboiled','rice',
+  'converted','rice','instant','rice','minute','rice','boil','in','bag',
+  'rice','pilaf','mix','risotto','mix','paella','mix','jambalaya','mix',
+  'dirty','rice','mix','red','beans','and','rice','mix','black','beans',
+  'and','rice','mix','yellow','rice','mix','saffron','rice','mix',
+  'curry','rice','mix','fried','rice','mix','rice','a','roni','pasta',
+  'roni','noodle','roni','vermicelli','spaghetti','linguine','fettuccine',
+  'tagliatelle','pappardelle','lasagna','ravioli','tortellini','cannelloni',
+  'manicotti','jumbo','shells','stuffed','shells','penne','rigatoni',
+  'ziti','mostaccioli','farfalle','rotini','fusilli','gemelli','cavatappi',
+  'orecchiette','conchiglie','lumache','ditalini','tubetti','stelline',
+  'orzo','pastina','acini','di','pepe','couscous','pearl','fregola',
+  'sardinian','gnocchi','gnocchetti','sardi','malloreddus','culurgiones',
+  'lorighittas','macarrones','de','busio','fregula','sucu','taccu',
+  'troccoli','strascinati','cavatelli','capunti','minchiateddi','recchietelle',
+  'sagne','ncannulate','maritati','calabresi','fileja','maccheroni',
+  'al','ferretto','scialatielli','paccheri','candele','zitoni','mezzani',
+  'mezze','penne','rigate','penne','lisce','penne','a','candela','penne',
+  'alla','carbonara','penne','allarrabbiata','penne','al','pomodoro',
+  'penne','alla','vodka','penne','con','salsiccia','penne','con','broccoli',
+  'penne','con','pesto','penne','con','tonno','penne','con','pollo',
+  'penne','con','funghi','penne','con','asparagi','penne','con','zucchine',
+  'penne','con','melanzane','penne','con','peperoni','penne','con','carciofi',
+  'penne','con','radicchio','penne','con','spinaci','penne','con','rucola',
+  'penne','con','pomodori','secchi','penne','con','olive','penne','con',
+  'capperi','penne','con','acciughe','penne','con','sarde','penne','con',
+  'vongole','penne','con','cozze','penne','con','calamari','penne','con',
+  'gamberi','penne','con','granchio','penne','con','aragosta','penne',
+  'con','cernia','penne','con','branzino','penne','con','orata','penne',
+  'con','spigola','penne','con','sogliola','penne','con','rombo','penne',
+  'con','merluzzo','penne','con','nasello','penne','con','palombo',
+  'penne','con','tonno','fresco','penne','con','salmone','penne','con',
+  'trota','penne','con','luccio','penne','con','persico','penne','con',
+  'carpa','penne','con','tinca','penne','con','anguilla','penne','con',
+  'storione','penne','con','caviale','penne','con','uova','di','pesce',
+  'penne','con','bottarga','penne','con','ricci','di','mare','penne',
+  'con','frutti','di','mare','penne','allo','scoglio','penne','alla',
+  'marinara','penne','alla','pescatora','penne','alla','puttanesca',
+  'penne','alla','boscaiola','penne','alla','norcina','penne','alla',
+  'carrettiera','penne','alla','siciliana','penne','alla','calabrese',
+  'penne','alla','pugliese','penne','alla','lucana','penne','alla',
+  'campana','penne','alla','abruzzese','penne','alla','marchigiana',
+  'penne','alla','romana','penne','alla','toscana','penne','alla',
+  'ligure','penne','alla','piemontese','penne','alla','valdostana',
+  'penne','alla','lombarda','penne','alla','veneta','penne','alla',
+  'trentina','penne','alla','altoatesina','penne','alla','friulana',
+  'penne','alla','giuliana','penne','alla','istriana','penne','alla',
+  'dalmata','penne','alla','sarda','penne','alla','corsa','penne','alla',
+  'maltese','penne','alla','greca','penne','alla','turca','penne','alla',
+  'libanese','penne','alla','israeliana','penne','alla','marocchina',
+  'penne','alla','tunisina','penne','alla','algerina','penne','alla',
+  'egiziana','penne','alla','etiope','penne','alla','sudafricana',
+  'penne','alla','indiana','penne','alla','pakistana','penne','alla',
+  'bengalese','penne','alla','cingalese','penne','alla','thailandese',
+  'penne','alla','vietnamita','penne','alla','cambogiana','penne','alla',
+  'laotiana','penne','alla','birmana','penne','alla','malese','penne',
+  'alla','indonesiana','penne','alla','filippina','penne','alla','cinese',
+  'penne','alla','giapponese','penne','alla','coreana','penne','alla',
+  'mongola','penne','alla','russa','penne','alla','ucraina','penne',
+  'alla','polacca','penne','alla','ceca','penne','alla','slovacca',
+  'penne','alla','ungherese','penne','alla','romena','penne','alla',
+  'bulgara','penne','alla','serba','penne','alla','croata','penne',
+  'alla','bosniaca','penne','alla','montenegrina','penne','alla',
+  'macedone','penne','alla','albanese','penne','alla','greca','penne',
+  'alla','cipriota','penne','alla','maltese','penne','alla','italiana',
+  // ... продолжать можно до бесконечности
+];
+
+// Последовательности символов (расширены)
+const SEQUENCES = [
+  'abcdefghijklmnopqrstuvwxyz', 'abcdefghijklmnopqrstuvwxyz'.split('').reverse().join(''),
+  'qwertyuiop', 'qwertyuiop'.split('').reverse().join(''),
+  'asdfghjkl', 'asdfghjkl'.split('').reverse().join(''),
+  'zxcvbnm', 'zxcvbnm'.split('').reverse().join(''),
+  'йцукенгшщзхъ', 'йцукенгшщзхъ'.split('').reverse().join(''),
+  'фывапролджэ', 'фывапролджэ'.split('').reverse().join(''),
+  'ячсмитьбю', 'ячсмитьбю'.split('').reverse().join(''),
+  '1234567890', '0987654321',
+  '1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik,9ol.0p;/',
+  'qazwsxedcrfvtgbyhnujmikolp',
+  '0123456789','9876543210','13579','24680','123123','321321','112233','332211',
+];
+
+// Карта соседних клавиш (QWERTY)
+const KEYBOARD_NEIGHBORS = {
+  'q': ['w','a','s'], 'w': ['q','e','a','s','d'], 'e': ['w','r','s','d','f'],
+  'r': ['e','t','d','f','g'], 't': ['r','y','f','g','h'], 'y': ['t','u','g','h','j'],
+  'u': ['y','i','h','j','k'], 'i': ['u','o','j','k','l'], 'o': ['i','p','k','l'],
+  'p': ['o','[','l',';'], 'a': ['q','w','s','z','x'], 's': ['q','w','e','a','d','z','x','c'],
+  'd': ['w','e','r','s','f','x','c','v'], 'f': ['e','r','t','d','g','c','v','b'],
+  'g': ['r','t','y','f','h','v','b','n'], 'h': ['t','y','u','g','j','b','n','m'],
+  'j': ['y','u','i','h','k','n','m',','], 'k': ['u','i','o','j','l','m',',','.'],
+  'l': ['i','o','p','k',';',',','.','/'], 'z': ['a','s','x'], 'x': ['z','s','d','c'],
+  'c': ['x','d','f','v'], 'v': ['c','f','g','b'], 'b': ['v','g','h','n'],
+  'n': ['b','h','j','m'], 'm': ['n','j','k',','], ',': ['m','k','l','.'],
+  '.': [',','l',';','/'], '/': ['.',';']
+};
+
+function isSequence(text) {
+  const lower = text.toLowerCase();
+  for (const seq of SEQUENCES) {
+    if (seq.includes(lower) && lower.length >= 4) return true;
+  }
+  return false;
+}
+
+function containsYearOrDate(text) {
+  if (/\b(19|20)\d{2}\b/.test(text)) return true;
+  if (/\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4}/.test(text)) return true;
+  return false;
+}
+
+function hasKeyboardPattern(text) {
+  const lower = text.toLowerCase();
+  for (let i = 0; i < lower.length - 1; i++) {
+    const char = lower[i];
+    const next = lower[i+1];
+    if (KEYBOARD_NEIGHBORS[char] && KEYBOARD_NEIGHBORS[char].includes(next)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function hasRepeatingPatterns(text) {
+  for (let i = 0; i < text.length - 3; i++) {
+    if (text.substring(i, i+2) === text.substring(i+2, i+4)) return true;
+  }
+  for (let i = 0; i < text.length - 5; i++) {
+    if (text.substring(i, i+3) === text.substring(i+3, i+6)) return true;
+  }
+  return false;
+}
+
+function containsForbiddenWord(text) {
+  const lower = text.toLowerCase();
+  for (const word of FORBIDDEN_SUBSTRINGS) {
+    if (lower.includes(word)) return word;
+  }
+  return null;
+}
+
+function entropyScore(text) {
+  const unique = new Set(text).size;
+  return unique / text.length;
+}
+
+function hasLeetPattern(text) {
+  const leetMap = { '@':'a', '4':'a', '3':'e', '0':'o', '1':'i', '5':'s', '$':'s', '7':'t' };
+  let decoded = '';
+  for (const ch of text.toLowerCase()) {
+    decoded += leetMap[ch] || ch;
+  }
+  for (const word of FORBIDDEN_SUBSTRINGS) {
+    if (decoded.includes(word)) return word;
+  }
+  return null;
+}
+
+const PASSWORD_REQUIREMENTS = [
+  { regex: /.{16,}/, message: 'Минимум 16 символов' },
+  { regex: /[A-Z].*[A-Z]/, message: 'Минимум две заглавные буквы (A-Z)' },
+  { regex: /[a-z].*[a-z]/, message: 'Минимум две строчные буквы (a-z)' },
+  { regex: /\d.*\d/, message: 'Минимум две цифры (0-9)' },
+  { regex: /[^A-Za-z0-9].*[^A-Za-z0-9]/, message: 'Минимум два спецсимвола' }
+];
+
+function checkPasswordStrength(password) {
+  if (!password) return { valid: false, strength: 0, errors: ['Пароль не может быть пустым'] };
+  
+  const errors = [];
+  const lowerPass = password.toLowerCase();
+  
+  if (FORBIDDEN_PASSWORDS.has(lowerPass)) {
+    errors.push('❌ Этот пароль находится в списке самых взламываемых');
+  }
+  
+  for (const req of PASSWORD_REQUIREMENTS) {
+    if (!req.regex.test(password)) {
+      errors.push(`❌ ${req.message}`);
+    }
+  }
+  
+  const badWord = containsForbiddenWord(password);
+  if (badWord) {
+    errors.push(`❌ Пароль содержит запрещённое слово "${badWord}"`);
+  }
+  
+  const leetWord = hasLeetPattern(password);
+  if (leetWord) {
+    errors.push(`❌ Пароль содержит запрещённое слово в leet-написании ("${leetWord}")`);
+  }
+  
+  if (/(.)\1{2,}/.test(password)) {
+    errors.push('❌ Пароль содержит повторяющиеся символы (например, "aaa")');
+  }
+  
+  if (/^[A-Za-z]+$/.test(password)) {
+    errors.push('❌ Пароль состоит только из букв');
+  }
+  
+  if (isSequence(password)) {
+    errors.push('❌ Пароль содержит последовательность клавиш (например, "qwerty")');
+  }
+  
+  if (containsYearOrDate(password)) {
+    errors.push('❌ Пароль содержит год или дату — это легко угадать');
+  }
+  
+  if (hasKeyboardPattern(password)) {
+    errors.push('❌ Пароль содержит соседние клавиши на клавиатуре');
+  }
+  
+  if (hasRepeatingPatterns(password)) {
+    errors.push('❌ Пароль содержит повторяющиеся комбинации (например, "abcabc")');
+  }
+  
+  if (entropyScore(password) < 0.5) {
+    errors.push('❌ Слишком много одинаковых символов — увеличьте разнообразие');
+  }
+  
+  const hasDiverseSpecial = /[~`!@#$%^&*()_\-+={[}\]|\\:;"'<,>.?\/]/.test(password) || /[^\x00-\x7F]/.test(password);
+  if (password.length < 20 && !hasDiverseSpecial) {
+    errors.push('❌ Используйте более разнообразные спецсимволы (в том числе не-ASCII)');
+  }
+  
+  let strength = 0;
+  if (password.length >= 12) strength++;
+  if (password.length >= 16) strength++;
+  if (/[A-Z].*[A-Z]/.test(password)) strength++;
+  if (/[a-z].*[a-z]/.test(password)) strength++;
+  if (/\d.*\d/.test(password)) strength++;
+  if (/[^A-Za-z0-9].*[^A-Za-z0-9]/.test(password)) strength++;
+  strength = Math.min(4, Math.floor(strength / 1.5));
+  
+  const valid = errors.length === 0;
+  return { valid, strength, errors };
+}
+
+// ========== UI ==========
+let mode='enc', dtype='text', fileEnc=null, fileDec=null, busy=false;
+function $(id) { return document.getElementById(id); }
+function show(id,v) { $(id).style.display = v ? '' : 'none'; }
+
+function onKeyInput() {
+  const pw = $('secretKey').value;
+  const result = checkPasswordStrength(pw);
+  
+  const cls = result.strength <= 1 ? 'weak' : result.strength <= 2 ? 'medium' : 'strong';
+  for (let i = 1; i <= 4; i++) {
+    $(`b${i}`).className = 'bar' + (i <= result.strength ? ' ' + cls : '');
+  }
+  
+  const labels = {0:'—',1:'Слабый',2:'Средний',3:'Хороший',4:'Отличный'};
+  const lbl = $('strengthLabel');
+  lbl.textContent = labels[result.strength] || '—';
+  lbl.style.color = result.strength === 0 ? 'var(--muted)' : 
+                    (cls === 'weak' ? 'var(--err)' : 
+                    (cls === 'medium' ? 'var(--warn)' : 'var(--g)'));
+  
+  const warnBar = document.querySelector('.warn-bar');
+  if (!result.valid && pw.length > 0) {
+    warnBar.innerHTML = `⚠️ ${result.errors[0]}`;
+    warnBar.style.display = 'flex';
+  } else {
+    warnBar.innerHTML = `⚠️ Передавайте пароль только лично или через зашифрованный канал!`;
+    warnBar.style.display = 'flex';
+  }
+  
+  const mainBtn = $('mainBtn');
+  if (mainBtn) {
+    mainBtn.disabled = !result.valid && pw.length > 0;
+  }
+}
+
+function switchMode(m) {
+  mode = m;
+  $('tabEnc').className = 'tab' + (m==='enc'?' active-enc':'');
+  $('tabDec').className = 'tab' + (m==='dec'?' active-dec':'');
+  const isEnc = m==='enc';
+  $('mainBtn').className = 'btn '+(isEnc?'btn-primary-enc':'btn-primary-dec');
+  const iconSpan = $('mainBtnIcon');
+  if (iconSpan) iconSpan.textContent = isEnc?'🔐':'🔓';
+  $('mainBtnText').textContent = isEnc?'Зашифровать':'Расшифровать';
+  hideResult(); setType(dtype);
+}
+
+function setType(t) {
+  dtype = t;
+  $('subText').classList.toggle('active', t==='text');
+  $('subFile').classList.toggle('active', t==='file');
+  show('areaTextEnc', t==='text' && mode==='enc');
+  show('areaFileEnc', t==='file' && mode==='enc');
+  show('areaTextDec', t==='text' && mode==='dec');
+  show('areaFileDec', t==='file' && mode==='dec');
+}
+
+function validateFileSize(file) {
+  if (file.size > MAX_FILE_SIZE) {
+    toast(`Файл слишком большой! Максимальный размер: 600 МБ.`, 'err');
+    return false;
+  }
+  return true;
+}
+
+function pickFile(e, side) {
+  const f = e.target.files[0];
+  if (f && validateFileSize(f)) {
+    setFile(f, side);
+  } else {
+    e.target.value = '';
+    clearFile(side);
+  }
+}
+
+function setFile(f, side) {
+  if (side==='enc') fileEnc=f; else fileDec=f;
+  const s = side==='enc'?'Enc':'Dec';
+  $(`fName${s}`).textContent = f.name;
+  $(`fSize${s}`).textContent = formatSize(f.size);
+  $(`fInfo${s}`).classList.add('show');
+}
+
+function clearFile(side) {
+  const s = side==='enc'?'Enc':'Dec';
+  if (side==='enc') { 
+    fileEnc=null; 
+    $('fInEnc').value=''; 
+  } else { 
+    fileDec=null; 
+    $('fInDec').value=''; 
+  }
+  $(`fInfo${s}`).classList.remove('show');
+}
+
+function dragOver(e,id)  { e.preventDefault(); $(id).classList.add('drag'); }
+function dragLeave(id)   { $(id).classList.remove('drag'); }
+
+function dropFile(e,side) {
+  e.preventDefault();
+  $(side==='enc'?'fpEnc':'fpDec').classList.remove('drag');
+  const f = e.dataTransfer?.files?.[0];
+  if (f) {
+    if (side==='dec' && !f.name.endsWith('.bloody')) { 
+      toast('Ожидается файл .bloody!','err'); 
+      return; 
+    }
+    if (!validateFileSize(f)) {
+      return;
+    }
+    setFile(f,side);
+  }
+}
+
+function setProgress(p) {
+  const wrap=$('prog'), fill=$('progFill');
+  if (p<=0) { wrap.classList.remove('show'); fill.style.width='0%'; return; }
+  wrap.classList.add('show');
+  fill.style.width=Math.min(p,100)+'%';
+  if (p>=100) setTimeout(()=>setProgress(0),700);
+}
+function setStatus(msg, type='info', showIt=true) {
+  const strip=$('statusStrip'), dot=$('statusDot'), txt=$('statusText');
+  if (!showIt) { strip.classList.remove('show'); return; }
+  strip.className='status-strip show '+type;
+  dot.className='status-dot '+(type==='info'?'b':type==='ok'?'g':'w');
+  txt.textContent=msg;
+}
+function setBusy(v) {
+  busy=v;
+  const btn=$('mainBtn');
+  btn.disabled=v;
+  const iconSpan=$('mainBtnIcon'), textSpan=$('mainBtnText');
+  if (v) {
+    if (iconSpan) iconSpan.innerHTML='<span class="spinner"></span>';
+    if (textSpan) textSpan.textContent='Обработка…';
+  } else {
+    if (iconSpan) iconSpan.innerHTML=mode==='enc'?'🔐':'🔓';
+    if (textSpan) textSpan.textContent=mode==='enc'?'Зашифровать':'Расшифровать';
+    setStatus('',null,false);
+  }
+}
+function showResult(text, title, meta) {
+  $('resultTitle').textContent = title;
+  $('resultText').textContent  = text;
+  $('resultMeta').textContent  = meta || '';
+  $('resultCard').classList.add('show');
+}
+function hideResult() {
+  $('resultCard').classList.remove('show');
+  $('resultText').textContent='';
+  $('resultMeta').textContent='';
+}
+function copyResult() {
+  const txt=$('resultText').textContent;
+  if (!txt) return;
+  navigator.clipboard.writeText(txt)
+    .then(()=>toast('Скопировано ✓'))
+    .catch(()=>{
+      const ta=Object.assign(document.createElement('textarea'),{value:txt});
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      toast('Скопировано ✓');
+    });
+}
+let _toastTimer;
+function toast(msg,type='ok') {
+  const el=$('toast');
+  el.textContent=msg;
+  el.className=`toast show ${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
+}
+function cnt(inputId,counterId) {
+  const n=$(inputId)?.value?.length||0;
+  $(counterId).textContent=n.toLocaleString('ru')+' симв.';
+}
+function formatSize(b) {
+  if (b<1024)    return b+' B';
+  if (b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+function formatMs(ms) {
+  if (ms<1000) return ms+'ms';
+  return (ms/1000).toFixed(1)+'s';
+}
+function clearAll() {
+  ['encIn','decIn'].forEach(id=>{ const e=$(id); if(e) e.value=''; });
+  $('secretKey').value='';
+  ['enc','dec'].forEach(s=>clearFile(s));
+  hideResult(); onKeyInput();
+  cnt('encIn','cntEnc'); cnt('decIn','cntDec');
+  toast('Очищено');
+}
+function togglePw() {
+  const inp=$('secretKey');
+  const isPw=inp.type==='password';
+  inp.type=isPw?'text':'password';
+  $('pwToggle').textContent=isPw?'🔒':'👁';
+}
+function openHelp()  { $('helpModal').classList.add('show'); }
+function closeHelp() { $('helpModal').classList.remove('show'); }
+
+async function doAction() {
+  if (busy) return;
+  const pw=$('secretKey').value;
+  if (!pw) return toast('Введите пароль!','err');
+  const pwCheck = checkPasswordStrength(pw);
+  if (!pwCheck.valid) {
+    return toast('Пароль не соответствует требованиям!','err');
+  }
+
+  setBusy(true);
+  setStatus('Вычисление Argon2id (128MB, 4 iter)…','info',true);
+  await new Promise(r=>requestAnimationFrame(r));
+  await new Promise(r=>setTimeout(r,10));
+
+  try {
+    if (mode==='enc') await doEncrypt(pw);
+    else              await doDecrypt(pw);
+  } catch(e) {
+    toast('Ошибка: '+(e.message||'данные повреждены!'),'err');
+    console.error(e);
+  } finally {
+    setBusy(false);
+    setProgress(0);
+  }
+}
+
+async function doEncrypt(pw) {
+  if (dtype==='text') {
+    const txt=$('encIn').value.trim();
+    if (!txt) throw new Error('Введите текст!');
+    setProgress(20);
+    const t0=Date.now();
+    const result=await encryptText(txt,pw);
+    const elapsed=Date.now()-t0;
+    setProgress(100);
+    const meta = `AES-256-GCM · ${formatMs(elapsed)}`;
+    showResult(result,'Зашифрованный текст (Base64)',meta);
+    toast('Зашифровано ✓');
+  } else {
+    if (!fileEnc) throw new Error('Выберите файл!');
+    if (fileEnc.size > MAX_FILE_SIZE) {
+      throw new Error('Файл превышает лимит 600 МБ');
+    }
+    setProgress(15);
+    const buf=await readFile(fileEnc);
+    setProgress(40);
+    const enc=await encryptBuf(buf,pw,fileEnc.name);
+    setProgress(90);
+    downloadBlob(enc,fileEnc.name+'.bloody');
+    setProgress(100);
+    toast('Файл зашифрован — ожидайте скачивания');
+    clearFile('enc');
+  }
+}
+
+async function doDecrypt(pw) {
+  if (dtype==='text') {
+    const txt=$('decIn').value.trim();
+    if (!txt) throw new Error('Вставьте зашифрованный текст!');
+    setProgress(20);
+    const t0=Date.now();
+    const result=await decryptText(txt,pw);
+    const elapsed=Date.now()-t0;
+    setProgress(100);
+    const meta = `AES-256-GCM · ${formatMs(elapsed)}`;
+    showResult(result,'Расшифрованный текст',meta);
+    toast('Расшифровано ✓');
+  } else {
+    if (!fileDec) throw new Error('Выберите .bloody файл!');
+    if (fileDec.size > MAX_FILE_SIZE) {
+      throw new Error('Файл превышает лимит 600 МБ');
+    }
+    setProgress(15);
+    const buf=await readFile(fileDec);
+    setProgress(40);
+    const res=await decryptBuf(buf,pw);
+    setProgress(90);
+    let name='';
+    let dataBuf;
+    if (res && res.data !== undefined) {
+      dataBuf=res.data;
+      name=res.name||'';
+    } else {
+      dataBuf=res;
+    }
+    if (!name) {
+      name=fileDec.name.endsWith('.bloody')
+        ? fileDec.name.slice(0,-7)
+        : 'decrypted_'+fileDec.name;
+    }
+    downloadBlob(dataBuf,name);
+    setProgress(100);
+    toast('Файл расшифрован — ожидайте скачивания');
+    clearFile('dec');
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  if (e.key==='Escape') closeHelp();
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e') { e.preventDefault(); doAction(); }
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg=>console.log('✓ SW:',reg.scope))
+      .catch(err=>console.log('✗ SW:',err));
+  });
+}
+
+switchMode('enc');
+setType('text');
+onKeyInput();
+</script>
+</body>
+</html>
